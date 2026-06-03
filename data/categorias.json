@@ -1,0 +1,34 @@
+[
+  {
+    "id": "all",
+    "label": "ALL ITEMS"
+  },
+  {
+    "id": "pizzas",
+    "label": "PIZZAS"
+  },
+  {
+    "id": "hamburguesas",
+    "label": "HAMBURGUESAS"
+  },
+  {
+    "id": "lomos",
+    "label": "LOMOS"
+  },
+  {
+    "id": "pastas",
+    "label": "PASTAS"
+  },
+  {
+    "id": "bebidas",
+    "label": "BEBIDAS"
+  },
+  {
+    "id": "empanadas",
+    "label": "EMPANADAS"
+  },
+  {
+    "id": "postres",
+    "label": "POSTRES"
+  }
+]

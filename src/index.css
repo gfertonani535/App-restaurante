@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: #fdf8f8;
+  --color-foreground: #1c1b1b;
+  --color-card: #ffffff;
+  --color-card-foreground: #1c1b1b;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1c1b1b;
+  --color-primary: #000000;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #e3e2e2;
+  --color-secondary-foreground: #646464;
+  --color-muted: #f1edec;
+  --color-muted-foreground: #5e5e5e;
+  --color-accent: #ebe7e6;
+  --color-accent-foreground: #1c1b1b;
+  --color-destructive: #ba1a1a;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #c4c7c7;
+  --color-input: #c4c7c7;
+  --color-ring: #000000;
+  --color-surface: #fdf8f8;
+  --color-surface-low: #f7f3f2;
+  --color-surface-high: #e5e2e1;
+  --color-copy: #444748;
+  --color-success: #008b4c;
+
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply bg-background font-sans text-foreground antialiased;
+    text-rendering: geometricPrecision;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: max(884px, 100dvh);
+    @apply m-0 bg-background text-foreground;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  img {
+    @apply block max-w-full;
+  }
+}
