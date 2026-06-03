@@ -4,7 +4,7 @@
 
 Proyecto: **Bistro Digital - Menu Landing**  
 Modalidad: **trabajo individual**  
-Repositorio publico: github:giulianofertonani
+Repositorio publico: https://github.com/gfertonani535/App-restaurante
 
 ## Descripcion tecnica
 
