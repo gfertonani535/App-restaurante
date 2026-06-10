@@ -4,7 +4,7 @@
 
 Proyecto: **Bistro Digital - Menu Landing y Router**  
 Modalidad: **trabajo individual**  
-Repositorio publico: github:giulianofertonani
+Repositorio publico: https://github.com/gfertonani535/App-restaurante
 
 ## Descripcion tecnica
 
@@ -108,7 +108,7 @@ La carpeta `dist/` no forma parte del codigo fuente: Vite la genera automaticame
 ## Instalacion y ejecucion local
 
 ```bash
-git clone <url-del-repositorio>
+git clone <https://github.com/gfertonani535/App-restaurante>
 cd <carpeta-del-proyecto>
 npm install
 npm run dev
