@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Croissant, Hamburger, IceCream, Pizza, Sandwich, Utensils } from 'lucide-react';
+import { Croissant, Hamburger, IceCream, ImageIcon, Pizza, Sandwich, Utensils } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const productImages = import.meta.glob('../../assets/productos/*.{jpg,jpeg,png,webp}', {
-  eager: true,
-  import: 'default',
-});
+import { resolveProductImage } from '@/utils/productImageResolver.js';
 
 const productIcons = {
   burger: Hamburger,
@@ -17,13 +12,17 @@ const productIcons = {
   utensils: Utensils,
 };
 
-function getProductImage(imageName) {
-  return productImages[`../../assets/productos/${imageName}`] ?? '';
+function formatPrice(price) {
+  if (typeof price === 'number') {
+    return `$${price.toFixed(2)}`;
+  }
+
+  return price ?? '';
 }
 
-export function CardProducts({ product }) {
+export function CardProducts({ onSelect, product }) {
   const Icon = productIcons[product.icon] ?? Utensils;
-  const productImage = getProductImage(product.image);
+  const productImage = resolveProductImage(product);
   const titleRef = useRef(null);
   const [descriptionLineClamp, setDescriptionLineClamp] = useState(2);
 
@@ -45,12 +44,20 @@ export function CardProducts({ product }) {
         'hover:border-muted-foreground active:scale-[0.997] active:border-primary',
       )}
     >
-      <Link
-        to={`/producto/${product.id}`}
-        className="flex h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      <button
+        aria-label={`Ver detalle de ${product.name}`}
+        className="flex h-full w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        onClick={() => onSelect?.(product)}
+        type="button"
       >
         <div className="h-full basis-24 shrink-0 p-2">
-          <img className="h-full w-full rounded-md object-cover" src={productImage} alt={product.imageAlt} />
+          {productImage ? (
+            <img className="h-full w-full rounded-md object-cover" src={productImage} alt={product.name} />
+          ) : (
+            <div className="grid h-full w-full place-items-center rounded-md bg-neutral-100 text-neutral-400">
+              <ImageIcon className="size-7" strokeWidth={1.8} aria-hidden="true" />
+            </div>
+          )}
         </div>
 
         <div className="relative flex min-w-0 flex-1 flex-col pb-2 pl-2 pr-4 pt-2">
@@ -69,13 +76,13 @@ export function CardProducts({ product }) {
               wordWrap: 'break-word',
             }}
           >
-            {product.description}
+            {product.shortDescription ?? product.description}
           </p>
           <div className="mb-0 mt-auto flex justify-end">
-            <span className="text-xl font-bold leading-none tracking-normal text-primary">{product.price}</span>
+            <span className="text-xl font-bold leading-none tracking-normal text-primary">{formatPrice(product.price)}</span>
           </div>
         </div>
-      </Link>
+      </button>
     </article>
   );
 }

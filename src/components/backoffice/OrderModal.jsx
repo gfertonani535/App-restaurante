@@ -3,10 +3,10 @@ import { Banknote, Building2, CreditCard, Minus, Plus, Search, Trash2, Wallet, X
 import { cn } from '@/lib/utils';
 
 const paymentMethods = [
-  { id: 'CASH', label: 'Efectivo', icon: Banknote },
-  { id: 'CARD', label: 'Tarjeta', icon: CreditCard },
-  { id: 'TRANSFER', label: 'Transferencia', icon: Building2 },
-  { id: 'MERCADO_PAGO', label: 'Mercado Pago', icon: Wallet },
+  { id: 'cash', label: 'Efectivo', icon: Banknote },
+  { id: 'card', label: 'Tarjeta', icon: CreditCard },
+  { id: 'transfer', label: 'Transferencia', icon: Building2 },
+  { id: 'other', label: 'Otro', icon: Wallet },
 ];
 
 function createOrderItem(product, quantity = 1) {
@@ -24,15 +24,15 @@ function formatMoney(value) {
   return `$${value.toFixed(2)}`;
 }
 
-export function OrderModal({ mode, order, products, categories, onClose, onSave }) {
+export function OrderModal({ mode, order, products, categories, isSaving = false, onClose, onSave }) {
   const [activeCategoryId, setActiveCategoryId] = useState('quick-access');
   const [searchTerm, setSearchTerm] = useState('');
   const [tableOrLocation, setTableOrLocation] = useState(() => (mode === 'edit' ? order?.tableOrLocation ?? '' : ''));
   const [customerOrWaiter, setCustomerOrWaiter] = useState(() => (mode === 'edit' ? order?.customerOrWaiter ?? '' : ''));
+  const [notes, setNotes] = useState(() => (mode === 'edit' ? order?.notes ?? '' : ''));
+  const orderStatus = mode === 'edit' ? order?.status ?? 'open' : 'open';
   const [items, setItems] = useState(() => (mode === 'edit' ? order?.items ?? [] : []));
-  const [paymentMethod, setPaymentMethod] = useState(() =>
-    mode === 'edit' && order?.paymentMethod !== 'UNDEFINED' ? order?.paymentMethod ?? 'CASH' : 'CASH',
-  );
+  const [isPaymentMenuOpen, setIsPaymentMenuOpen] = useState(false);
 
   const filteredProducts = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -94,31 +94,39 @@ export function OrderModal({ mode, order, products, categories, onClose, onSave 
     setItems((currentItems) => currentItems.filter((item) => item.productId !== productId));
   }
 
-  function handleSave(paymentStatus) {
+  function handleSave(paymentAction, selectedPaymentMethod = null) {
     if (items.length === 0) {
       return;
     }
 
     onSave({
       id: order?.id,
-      orderNumber: order?.orderNumber,
-      tableOrLocation,
-      customerOrWaiter,
-      items,
-      paymentMethod: paymentStatus === 'PAID' ? paymentMethod : 'UNDEFINED',
-      paymentStatus,
-      orderStatus: paymentStatus === 'PAID' ? 'DELIVERED' : 'PENDING',
-      total,
+      tableLabel: tableOrLocation,
+      customerName: customerOrWaiter,
+      notes,
+      status: orderStatus,
+      items: items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        notes: item.notes ?? '',
+      })),
+      paymentAction,
+      paymentMethod: selectedPaymentMethod,
     });
+  }
+
+  function handleConfirmPaid(selectedPaymentMethod) {
+    setIsPaymentMenuOpen(false);
+    handleSave('paid', selectedPaymentMethod);
   }
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/20 p-3 backdrop-blur-[8px] sm:p-6" role="dialog" aria-modal="true">
-      <div className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden border border-neutral-300 bg-white sm:max-h-[86dvh]">
+      <div className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300 bg-white sm:max-h-[86dvh]">
         <header className="flex min-h-16 items-center justify-between border-b border-neutral-200 px-5">
           <h2 className="text-lg font-bold leading-tight">{mode === 'edit' ? 'Editar orden' : 'Nueva orden'}</h2>
           <button
-            className="grid size-10 place-items-center text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="grid size-10 place-items-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={onClose}
             type="button"
             aria-label="Cerrar modal"
@@ -128,90 +136,105 @@ export function OrderModal({ mode, order, products, categories, onClose, onSave 
         </header>
 
         <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[1.5fr_1fr] lg:overflow-hidden">
-          <section className="grid gap-8 border-b border-neutral-200 p-4 sm:p-5 lg:min-h-0 lg:grid-rows-[1fr_auto] lg:border-b-0 lg:border-r">
-            <div className="min-h-0">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <h3 className="text-xs font-bold uppercase tracking-[0.08em] text-neutral-950">Productos</h3>
-              </div>
-              <div className="mb-5 flex gap-3">
-                <label className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
-                  <input
-                    className="h-10 w-full border border-neutral-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    placeholder="Buscar productos..."
-                    type="search"
-                    value={searchTerm}
-                  />
-                </label>
-                <select className="hidden h-10 border border-neutral-200 bg-white px-3 text-sm outline-none focus:border-neutral-950 sm:block">
-                  <option>Mas vendidos</option>
-                  <option>Precio</option>
-                </select>
-              </div>
+          <section className="grid min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-4 border-b border-neutral-200 p-4 lg:border-b-0 lg:border-r">
+  <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <h3 className="text-xs font-bold uppercase tracking-[0.08em] text-neutral-950">
+        Productos
+      </h3>
 
-              <div className="max-h-[280px] min-h-[220px] overflow-y-auto pr-1 lg:max-h-[360px]">
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-                  {filteredProducts.map((product) => (
-                    <article className="flex min-h-28 flex-col justify-between border border-neutral-200 p-3" key={product.id}>
-                      <h4 className="text-sm font-bold leading-tight text-neutral-950">{product.name}</h4>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-bold">{formatMoney(product.price)}</span>
-                        <button
-                          className="grid size-7 place-items-center rounded-full border border-neutral-200 transition-colors hover:border-neutral-950 hover:bg-neutral-950 hover:text-white"
-                          onClick={() => addProduct(product)}
-                          type="button"
-                          aria-label={`Agregar ${product.name}`}
-                        >
-                          <Plus className="size-4" aria-hidden="true" />
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            </div>
+      <label className="relative w-full sm:max-w-sm">
+        <Search
+          className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400"
+          aria-hidden="true"
+        />
+        <input
+          className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+          onChange={(event) => setSearchTerm(event.target.value)}
+          placeholder="Buscar productos..."
+          type="search"
+          value={searchTerm}
+        />
+      </label>
+    </div>
 
-            <div>
-              <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.08em] text-neutral-950">{'Categor\u00edas'}</h3>
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 xl:grid-cols-7">
-                {categories.map((category) => (
-                  <button
-                    className={cn(
-                      'grid min-h-16 place-items-center border px-2 text-center text-[11px] font-semibold transition-colors',
-                      activeCategoryId === category.id
-                        ? 'border-neutral-950 bg-neutral-950 text-white'
-                        : 'border-neutral-200 bg-white text-neutral-800 hover:border-neutral-950',
-                    )}
-                    key={category.id}
-                    onClick={() => setActiveCategoryId(category.id)}
-                    type="button"
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
+    <div className="min-h-100 overflow-y-auto pr-1">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+        {filteredProducts.map((product) => (
+          <button
+            aria-label={`Agregar ${product.name} a la orden`}
+            className="flex min-h-24 cursor-pointer flex-col justify-between rounded-xl border border-neutral-200 bg-white p-3 text-left transition-all duration-150 hover:border-neutral-950 hover:bg-neutral-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2"
+            disabled={isSaving}
+            key={product.id}
+            onClick={() => addProduct(product)}
+            type="button"
+          >
+            <h4 className="text-sm leading-tight text-neutral-950">
+              {product.name}
+            </h4>
+
+            <span className="mt-4 text-sm font-bold">{formatMoney(product.price)}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div className="min-h-[13.5rem]">
+    <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.08em] text-neutral-950">
+      Categorías
+    </h3>
+
+    <div className="grid max-h-[12rem] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-5">
+      {categories.map((category) => (
+        <button
+          className={cn(
+            'grid min-h-14 place-items-center rounded-xl border px-3 text-center text-sm font-semibold transition-colors sm:min-h-16',
+            activeCategoryId === category.id
+              ? 'border-neutral-950 bg-neutral-950 text-white'
+              : 'border-neutral-200 bg-white text-neutral-800 hover:border-neutral-950',
+          )}
+          key={category.id}
+          onClick={() => setActiveCategoryId(category.id)}
+          type="button"
+        >
+          {category.name}
+        </button>
+      ))}
+    </div>
+  </div>
+</section>
 
           <section className="flex min-h-0 flex-col">
-            <div className="grid gap-4 border-b border-neutral-200 p-5 sm:grid-cols-2">
+            <div className="grid gap-4 border-b border-neutral-200 p-5 sm:grid-cols-2 xl:grid-cols-[37px_minmax(0,1fr)_minmax(0,1fr)]">
               <label className="grid gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-[0.08em]">Mesa / Identificador</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.08em]">Mesa</span>
                 <input
-                  className="h-10 border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+                  className="h-10 xl:w-12 rounded-lg border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+                  disabled={isSaving}
                   onChange={(event) => setTableOrLocation(event.target.value)}
-                  placeholder="Ej: M-12 o Takeaway"
+                  placeholder="N°"
                   value={tableOrLocation}
                 />
               </label>
               <label className="grid gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-[0.08em]">Mozo / Cliente</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.08em]">Cliente</span>
                 <input
-                  className="h-10 border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+                  className="h-10 rounded-lg border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+                  disabled={isSaving}
                   onChange={(event) => setCustomerOrWaiter(event.target.value)}
-                  placeholder="Nombre del responsable"
+                  placeholder="Nombre del cliente"
                   value={customerOrWaiter}
+                />
+              </label>
+              <label className="grid gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-[0.08em]">Notas</span>
+                <input
+                  className="h-10 rounded-lg border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+                  disabled={isSaving}
+                  onChange={(event) => setNotes(event.target.value)}
+                  placeholder="Notas generales"
+                  value={notes}
                 />
               </label>
             </div>
@@ -221,6 +244,7 @@ export function OrderModal({ mode, order, products, categories, onClose, onSave 
                 <h3 className="text-xs font-bold uppercase tracking-[0.08em]">Resumen de productos</h3>
                 <button
                   className="inline-flex items-center gap-1 text-xs text-neutral-500 transition-colors hover:text-neutral-950"
+                  disabled={isSaving}
                   onClick={() => setItems([])}
                   type="button"
                 >
@@ -230,11 +254,11 @@ export function OrderModal({ mode, order, products, categories, onClose, onSave 
               </div>
 
               {items.length === 0 ? (
-                <div className="grid min-h-40 place-items-center border border-dashed border-neutral-200 text-center text-sm text-neutral-400">
+                <div className="grid min-h-40 place-items-center rounded-xl border border-dashed border-neutral-200 text-center text-sm text-neutral-400">
                   Selecciona productos desde la grilla.
                 </div>
               ) : (
-                <div className="divide-y divide-neutral-100 border border-neutral-100">
+                <div className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-100">
                   {items.map((item) => (
                     <article className="grid gap-3 p-4" key={item.productId}>
                       <div className="flex items-start justify-between gap-3">
@@ -247,9 +271,10 @@ export function OrderModal({ mode, order, products, categories, onClose, onSave 
                         <span className="text-sm font-bold">{formatMoney(item.subtotal)}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center border border-neutral-200">
+                        <div className="flex items-center overflow-hidden rounded-full border border-neutral-200">
                           <button
                             className="grid size-8 place-items-center hover:bg-neutral-100"
+                            disabled={isSaving}
                             onClick={() => updateQuantity(item.productId, item.quantity - 1)}
                             type="button"
                             aria-label={`Restar ${item.name}`}
@@ -259,6 +284,7 @@ export function OrderModal({ mode, order, products, categories, onClose, onSave 
                           <span className="grid h-8 min-w-9 place-items-center text-sm font-bold">{item.quantity}</span>
                           <button
                             className="grid size-8 place-items-center hover:bg-neutral-100"
+                            disabled={isSaving}
                             onClick={() => updateQuantity(item.productId, item.quantity + 1)}
                             type="button"
                             aria-label={`Sumar ${item.name}`}
@@ -268,6 +294,7 @@ export function OrderModal({ mode, order, products, categories, onClose, onSave 
                         </div>
                         <button
                           className="text-xs font-bold uppercase tracking-[0.08em] text-neutral-400 hover:text-red-700"
+                          disabled={isSaving}
                           onClick={() => removeItem(item.productId)}
                           type="button"
                         >
@@ -285,61 +312,59 @@ export function OrderModal({ mode, order, products, categories, onClose, onSave 
                 <p className="text-[10px] font-bold uppercase tracking-[0.08em]">Total a pagar</p>
                 <p className="mt-1 text-4xl font-bold leading-none">{formatMoney(total)}</p>
               </div>
-
-              <div>
-                <h3 className="mb-3 text-[10px] font-bold uppercase tracking-[0.08em]">{'M\u00e9todo de pago'}</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {paymentMethods.map((method) => {
-                    const Icon = method.icon;
-                    const isSelected = paymentMethod === method.id;
-
-                    return (
-                      <button
-                        className={cn(
-                          'inline-flex min-h-12 items-center justify-center gap-2 border px-4 text-xs font-bold uppercase tracking-[0.06em] transition-colors',
-                          isSelected
-                            ? 'border-neutral-950 bg-neutral-950 text-white'
-                            : 'border-neutral-200 bg-white text-neutral-950 hover:border-neutral-950',
-                        )}
-                        key={method.id}
-                        onClick={() => setPaymentMethod(method.id)}
-                        type="button"
-                      >
-                        <Icon className="size-4" aria-hidden="true" />
-                        {method.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           </section>
         </div>
 
         <footer className="flex flex-col justify-end gap-3 border-t border-neutral-200 p-4 sm:flex-row sm:p-5">
           <button
-            className="min-h-11 border border-neutral-200 bg-white px-5 text-xs font-bold uppercase tracking-[0.06em] hover:border-neutral-950"
+            className="min-h-11 rounded-lg border border-neutral-200 bg-white px-5 text-xs font-bold uppercase tracking-[0.06em] hover:border-neutral-950"
+            disabled={isSaving}
             onClick={onClose}
             type="button"
           >
             Cancelar
           </button>
           <button
-            className="min-h-11 border border-neutral-200 bg-white px-5 text-xs font-bold uppercase tracking-[0.06em] hover:border-neutral-950 disabled:opacity-40"
-            disabled={items.length === 0}
-            onClick={() => handleSave('UNPAID')}
+            className="min-h-11 rounded-lg border border-neutral-200 bg-white px-5 text-xs font-bold uppercase tracking-[0.06em] hover:border-neutral-950 disabled:opacity-40"
+            disabled={items.length === 0 || isSaving}
+            onClick={() => handleSave('unpaid')}
             type="button"
           >
             Ordenar sin pagar
           </button>
-          <button
-            className="min-h-11 bg-neutral-950 px-5 text-xs font-bold uppercase tracking-[0.06em] text-white hover:bg-neutral-800 disabled:opacity-40"
-            disabled={items.length === 0}
-            onClick={() => handleSave('PAID')}
-            type="button"
-          >
-            Confirmar pago
-          </button>
+          <div className="relative">
+            <button
+              aria-expanded={isPaymentMenuOpen}
+              className="min-h-11 w-full rounded-lg bg-neutral-950 px-5 text-xs font-bold uppercase tracking-[0.06em] text-white transition-colors hover:bg-neutral-800 disabled:opacity-40 sm:w-auto"
+              disabled={items.length === 0 || total <= 0 || isSaving}
+              onClick={() => setIsPaymentMenuOpen((isOpen) => !isOpen)}
+              type="button"
+            >
+              {isSaving ? 'Guardando...' : 'Confirmar pago'}
+            </button>
+
+            {isPaymentMenuOpen ? (
+              <div className="absolute bottom-[calc(100%+0.5rem)] right-0 z-10 grid w-60 origin-bottom-right gap-2 rounded-xl border border-neutral-200 bg-white p-2 shadow-sm motion-safe:animate-[payment-popover-in_140ms_ease-out]">
+                {paymentMethods.map((method) => {
+                  const Icon = method.icon;
+
+                  return (
+                    <button
+                      className="inline-flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 text-left text-xs font-bold uppercase tracking-[0.06em] text-neutral-950 transition-colors hover:border-neutral-950 hover:bg-neutral-50 disabled:opacity-40"
+                      disabled={isSaving}
+                      key={method.id}
+                      onClick={() => handleConfirmPaid(method.id)}
+                      type="button"
+                    >
+                      <Icon className="size-4" aria-hidden="true" />
+                      {method.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
         </footer>
       </div>
     </div>

@@ -42,4 +42,12 @@ export default [
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
+  {
+    files: ['src/lib/server.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
 ];

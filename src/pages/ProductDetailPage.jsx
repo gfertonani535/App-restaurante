@@ -9,10 +9,10 @@ export function ProductDetailPage() {
     <AppShell>
       <PagePlaceholder
         title="Detalle de producto"
-        description="Ruta dinamica preparada para consumir datos por identificador."
+        description="Ruta dinámica preparada para consumir datos por identificador."
         backTo="/menu"
       >
-        <p className="text-sm text-copy">Parametro recibido: {productId}</p>
+        <p className="text-sm text-copy">Parámetro recibido: {productId}</p>
       </PagePlaceholder>
     </AppShell>
   );

@@ -1,11 +1,43 @@
 import { Download } from 'lucide-react';
 import { formatCurrency } from '@/lib/cashClosing.js';
 
-export function LatestTransactionsTable({ transactions, onExport, onOpenHistory }) {
+const paymentMethodLabels = {
+  cash: 'Efectivo',
+  card: 'Tarjeta',
+  transfer: 'Transferencia',
+  other: 'Otro',
+};
+
+function formatTime(value) {
+  if (!value) {
+    return '—';
+  }
+
+  return new Intl.DateTimeFormat('es-AR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
+
+function getPaymentLocation(payment) {
+  if (payment.order?.tableLabel) {
+    return payment.order.tableLabel;
+  }
+
+  if (payment.order?.orderNumber) {
+    return `Orden #${payment.order.orderNumber}`;
+  }
+
+  return 'Sin orden';
+}
+
+export function LatestTransactionsTable({ transactions, onExport, onOpenTransactions }) {
+  const latestTransactions = transactions.slice(0, 6);
+
   return (
     <section className="border border-neutral-300 bg-white">
       <div className="flex flex-col gap-3 border-b border-neutral-300 bg-white px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <h2 className="text-xl font-semibold text-neutral-950 sm:text-2xl">{'\u00daltimas Transacciones'}</h2>
+        <h2 className="text-xl font-semibold text-neutral-950 sm:text-2xl">Últimas Transacciones</h2>
         <button
           className="inline-flex min-h-10 items-center gap-2 px-3 text-xs font-bold uppercase tracking-[0.12em] text-neutral-500 transition-colors hover:text-neutral-950"
           onClick={onExport}
@@ -27,17 +59,18 @@ export function LatestTransactionsTable({ transactions, onExport, onOpenHistory 
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100">
-            {transactions.map((transaction) => (
+            {latestTransactions.map((transaction) => (
               <tr className="transition-colors hover:bg-neutral-50" key={transaction.id}>
-                <td className="px-6 py-5 text-sm text-neutral-950">{transaction.time}</td>
-                <td className="px-6 py-5 text-sm text-neutral-950">{transaction.tableOrLocation}</td>
+                <td className="px-6 py-5 text-sm text-neutral-950">{formatTime(transaction.paidAt)}</td>
+                <td className="px-6 py-5 text-sm text-neutral-950">{getPaymentLocation(transaction)}</td>
                 <td className="px-6 py-5">
                   <span className="bg-neutral-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-tight text-neutral-600">
-                    {transaction.paymentLabel}
+                    {paymentMethodLabels[transaction.method] ?? transaction.method}
+                    {transaction.reference ? ` · ${transaction.reference}` : ''}
                   </span>
                 </td>
                 <td className="px-6 py-5 text-right text-xl font-semibold leading-none text-neutral-950">
-                  {formatCurrency(transaction.total)}
+                  {formatCurrency(transaction.amount)}
                 </td>
               </tr>
             ))}
@@ -45,11 +78,18 @@ export function LatestTransactionsTable({ transactions, onExport, onOpenHistory 
         </table>
       </div>
 
+      {transactions.length === 0 ? (
+        <div className="border-t border-neutral-200 px-6 py-8 text-center text-sm text-neutral-500">
+          No hay pagos pendientes para incluir en un cierre.
+        </div>
+      ) : null}
+
       <footer className="flex justify-center border-t border-neutral-200 px-4 py-4">
         <button
           className="text-xs font-bold uppercase tracking-[0.12em] text-neutral-500 underline underline-offset-4 transition-colors hover:text-neutral-950"
-          onClick={onOpenHistory}
+          onClick={onOpenTransactions}
           type="button"
+          disabled={transactions.length === 0}
         >
           Ver todas las transacciones
         </button>

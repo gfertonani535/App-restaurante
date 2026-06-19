@@ -17,7 +17,7 @@ El perfil de usuario principal es el comensal que consulta productos desde un di
 - Landing page del menu digital basada en la maqueta provista.
 - Header fijo, hero de bienvenida, filtro horizontal de categorias, cards de productos y bottom navigation.
 - Design System basado en Tailwind CSS y componentes estilo shadcn/ui.
-- Datos JSON e imagenes estaticas para validar estructura y presentacion.
+- Catalogo conectado a Supabase para categorias, productos y menu publico.
 - Router SPA con rutas estaticas, rutas dinamicas y layout anidado de administracion.
 - Componentes de pagina representativos para cada ruta identificada en el prototipo.
 - Backoffice unificado bajo `AdminLayout` con sidebar unico para Dashboard, Cierre de Caja, Ordenes, Productos y Settings.
@@ -26,9 +26,6 @@ El perfil de usuario principal es el comensal que consulta productos desde un di
 
 ```txt
 public/
-  data/
-  categorias.json       # Categorias visibles en el filtro horizontal
-  productos.json        # Productos estaticos de la carta digital
   favicon.svg           # Favicon servido por Vite desde la raiz publica
 src/
   assets/
@@ -44,6 +41,8 @@ src/
     ui/                 # Componentes base estilo shadcn/ui
   lib/                  # Utilidades compartidas
   pages/                # Paginas renderizables de la app y backoffice
+  services/             # Acceso centralizado a Supabase
+  utils/                # Helpers de imagenes y resolucion publica
   App.jsx               # Composicion principal
   index.css             # Tailwind, tokens y estilos globales
   main.jsx              # Entrada de React

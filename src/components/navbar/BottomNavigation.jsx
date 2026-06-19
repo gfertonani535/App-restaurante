@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { id: 'menu', label: 'Menú', icon: Utensils, to: '/menu' },
-  { id: 'account', label: 'Cuenta', icon: UserRound, to: '/cuenta' },
+  { id: 'account', label: 'Cuenta', icon: UserRound, to: '/admin/dashboard' },
 ];
 
 export function BottomNavigation() {

@@ -83,13 +83,13 @@ function IconText({ icon: Icon, children }) {
 
 export function PublicMenuFooter({ isAuthenticated, onToggleSession }) {
   const SessionIcon = isAuthenticated ? LogOut : Lock;
-  const sessionLabel = isAuthenticated ? 'Cerrar sesi\u00f3n' : 'Iniciar sesi\u00f3n';
+  const sessionLabel = isAuthenticated ? 'Cerrar sesión' : 'Iniciar sesión';
 
   return (
     <footer className="relative left-1/2 right-1/2 mt-8 w-screen -translate-x-1/2 bg-[#111315] px-5 py-8 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:px-8 md:py-10">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-0 md:grid-cols-[1.15fr_1.15fr_0.8fr] md:gap-8">
-          <FooterSection title={'Contacto y Ubicaci\u00f3n'}>
+          <FooterSection title="Contacto y Ubicación">
             <div className="grid gap-4">
               <IconText icon={Phone}>+1 (555) 123-4567</IconText>
               <IconText icon={MapPin}>123 Gourmet Ave, Food City</IconText>
@@ -125,7 +125,7 @@ export function PublicMenuFooter({ isAuthenticated, onToggleSession }) {
 
         <div className="mt-6 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-5 text-center md:flex-row md:text-left">
           <p className="order-2 max-w-full text-[10px] font-medium uppercase leading-4 tracking-[0.1em] text-white/35 [overflow-wrap:anywhere] md:order-1 md:text-xs">
-            {'\u00a9 2024 Bistro Digital. Todos los derechos reservados.'}
+            © 2026 RestaurantOS. Todos los derechos reservados.
           </p>
           <button
             className={cn(
