@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase.js';
 
+// Servicio centralizado: resume, cierra e historiza caja usando datos reales de Supabase.
+
 const CLOSURE_SELECT = `
   id,
   closure_number,
@@ -216,6 +218,7 @@ export async function getPendingClosurePayments() {
 export async function closeCashRegister(notes = '') {
   const client = ensureSupabaseClient();
   const normalizedNotes = notes.trim();
+  // El cierre no borra ?rdenes: la RPC asocia pagos/?rdenes al cierre y las oculta del listado activo.
   const { data, error } = await client.rpc('close_cash_register', {
     p_notes: normalizedNotes || null,
   });

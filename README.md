@@ -55,6 +55,10 @@ El menu publico se mantiene separado en `AppShell`. Todo el backoffice vive bajo
 
 La carpeta `dist/` no forma parte del codigo fuente: Vite la genera automaticamente al ejecutar `npm run build` como salida de produccion. Por eso esta ignorada por Git y puede borrarse sin perder trabajo.
 
+## Deploy SPA
+
+`vercel.json` redirige las rutas internas al `index.html` para evitar 404 al recargar URLs de React Router en producci?n.
+
 ## Mapa de rutas
 
 | Ruta | Tipo | Vista |

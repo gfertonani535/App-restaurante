@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase.js';
 
+// Servicio centralizado: usuarios y perfiles se leen/actualizan en Supabase desde una sola capa.
+
 const PROFILE_SELECT_WITH_EMAIL = 'id, full_name, email, role, created_at, updated_at';
 const PROFILE_SELECT = 'id, full_name, role, created_at, updated_at';
 

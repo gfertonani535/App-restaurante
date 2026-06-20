@@ -46,6 +46,7 @@ const tabs = [
   { id: 'seguridad', label: 'Seguridad' },
 ];
 
+// Roles internos -> etiquetas visibles; la base conserva admin/manager/cashier/waiter/staff.
 const roles = [
   { value: 'admin', label: 'Administrador', permissions: 'Acceso completo al sistema.' },
   { value: 'manager', label: 'Encargado', permissions: 'Productos, categorías, órdenes, caja y dashboard.' },

@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase.js';
 
+// Servicio centralizado: configuraci?n general del restaurante persistida en Supabase.
+
 const RESTAURANT_SETTINGS_SELECT = `
   id,
   restaurant_name,

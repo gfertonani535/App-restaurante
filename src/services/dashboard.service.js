@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase.js';
 
+// Servicio centralizado: el dashboard solo consume lecturas reales agregadas desde Supabase.
+
 const ACTIVE_ORDER_STATUSES = ['open', 'preparing', 'ready', 'served'];
 
 function ensureSupabaseClient() {
