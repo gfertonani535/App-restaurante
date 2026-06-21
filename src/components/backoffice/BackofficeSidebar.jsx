@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { BarChart3, HelpCircle, LayoutDashboard, LogOut, ReceiptText, Settings, Tags, Utensils, X } from 'lucide-react';
+import { BarChart3, LayoutDashboard, LogOut, ReceiptText, Settings, Tags, Utensils, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { cn } from '@/lib/utils';
 
@@ -75,14 +75,7 @@ export function BackofficeSidebar({ isOpen = true, onClose, onNavigate, variant 
       </nav>
 
       <div className="mt-auto flex flex-col gap-1 border-t border-neutral-200 pt-4">
-        <a
-          className="mx-2 flex min-h-12 items-center gap-3 px-4 text-[13px] font-semibold uppercase tracking-[0.16em] text-neutral-500 transition-colors hover:text-neutral-950"
-          href="#help"
-          onClick={onNavigate}
-        >
-          <HelpCircle className="size-6" aria-hidden="true" />
-          Ayuda
-        </a>
+        
         <button
           className="mx-2 flex min-h-12 items-center gap-3 px-4 text-left text-[13px] font-semibold uppercase tracking-[0.16em] text-neutral-500 transition-colors hover:text-neutral-950"
           onClick={handleLogout}

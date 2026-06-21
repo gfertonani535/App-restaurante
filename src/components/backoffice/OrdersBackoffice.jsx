@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, Printer, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, Printer, Search, X } from 'lucide-react';
 import { OrderModal } from '@/components/backoffice/OrderModal.jsx';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { Button } from '@/components/ui/button.jsx';
+import { Input } from '@/components/ui/input.jsx';
 import { getCategories } from '@/services/categories.service.js';
 import { getProducts } from '@/services/products.service.js';
 import {
@@ -813,18 +814,25 @@ export function OrdersBackoffice() {
 
   return (
     <AdminPageContainer>
-      <PageHeader
-        onSearchChange={handleSearchChange}
-        primaryAction={
-          <Button onClick={handleNewOrder} size="sm" type="button">
-            <Plus className="size-4" strokeWidth={2} aria-hidden="true" />
-            Nueva orden
-          </Button>
-        }
-        searchPlaceholder="Buscar por mesa, orden o cliente..."
-        searchValue={searchTerm}
-        title="Órdenes Activas"
-      />
+      <PageHeader title="Órdenes Activas" />
+
+      <section className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <label className="relative w-full sm:max-w-md">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
+          <Input
+            aria-label="Buscar por mesa, orden o cliente..."
+            className="h-11 min-h-11 rounded-none border-neutral-200 bg-white pl-10 text-sm"
+            onChange={handleSearchChange}
+            placeholder="Buscar por mesa, orden o cliente..."
+            type="search"
+            value={searchTerm}
+          />
+        </label>
+        <Button className="w-full min-h-9 sm:w-auto" onClick={handleNewOrder} type="button">
+          <Plus className="size-4 " strokeWidth={2} aria-hidden="true" />
+          Nueva orden
+        </Button>
+      </section>
 
       {feedback ? <p className="border border-green-200 bg-green-50 p-3 text-sm font-semibold text-green-700">{feedback}</p> : null}
       {error ? (
@@ -1065,3 +1073,4 @@ export function OrdersBackoffice() {
     </AdminPageContainer>
   );
 }
+

@@ -3,8 +3,10 @@ import { NavLink } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Filter, Plus, Search } from 'lucide-react';
 import { PriceInlineEditor } from '@/components/backoffice/PriceInlineEditor.jsx';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
+import { EmptyState } from '@/components/common/EmptyState.jsx';
+import { ErrorState } from '@/components/common/ErrorState.jsx';
+import { LoadingState } from '@/components/common/LoadingState.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
-import { Alert } from '@/components/ui/alert.jsx';
 import { Badge } from '@/components/ui/badge.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Card, CardContent } from '@/components/ui/card.jsx';
@@ -372,7 +374,7 @@ export function ProductCatalogBackoffice() {
 
 
         <NavLink
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-xs font-bold uppercase tracking-[0.05em] text-primary-foreground transition-colors hover:bg-[#1c1b1b] sm:w-auto"
+          className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-xs font-bold uppercase tracking-[0.05em] text-primary-foreground transition-colors hover:bg-[#1c1b1b] sm:w-auto"
           to="/admin/productos/nuevo"
         >
           <Plus className="size-4" strokeWidth={2} aria-hidden="true" />
@@ -381,14 +383,11 @@ export function ProductCatalogBackoffice() {
       </section>
 
       {loadError ? (
-        <Alert variant="destructive" title="No se pudieron cargar los productos">
-          <div className="grid gap-3">
-            <p>{loadError}</p>
-            <Button className="w-fit" onClick={() => setReloadKey((currentKey) => currentKey + 1)} size="sm" type="button">
-              Reintentar
-            </Button>
-          </div>
-        </Alert>
+        <ErrorState
+          title="No se pudieron cargar los productos"
+          message={loadError}
+          onRetry={() => setReloadKey((currentKey) => currentKey + 1)}
+        />
       ) : null}
 
       <Card className="hidden overflow-hidden rounded-none border-neutral-200 bg-white lg:block">
@@ -451,9 +450,9 @@ export function ProductCatalogBackoffice() {
       </Card>
 
       <section className="grid gap-4 lg:hidden" aria-label="Productos">
-        {isLoading ? <Card className="rounded-none border-neutral-200 bg-white p-6 text-sm text-neutral-500">Cargando productos...</Card> : null}
+        {isLoading ? <LoadingState message="Cargando productos..." /> : null}
         {!isLoading && filteredProducts.length === 0 ? (
-          <Card className="rounded-none border-neutral-200 bg-white p-6 text-sm text-neutral-500">{emptyProductsMessage}</Card>
+          <EmptyState title={emptyProductsMessage} />
         ) : null}
         {!isLoading
           ? paginatedProducts.map((product) => {

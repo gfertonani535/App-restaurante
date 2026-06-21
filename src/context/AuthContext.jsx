@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import { supabase } from '@/lib/supabase.js';
 import { getCurrentProfile } from '@/services/users.service.js';
 
-// AuthContext centraliza sesi?n, usuario, perfil y rol con Context API (Unidad 5).
+// AuthContext centraliza sesión, usuario, perfil y rol con Context API (Unidad 5).
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {

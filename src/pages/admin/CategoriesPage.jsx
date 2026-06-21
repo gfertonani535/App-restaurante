@@ -12,6 +12,9 @@ import {
   X,
 } from 'lucide-react';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
+import { EmptyState } from '@/components/common/EmptyState.jsx';
+import { ErrorState } from '@/components/common/ErrorState.jsx';
+import { LoadingState } from '@/components/common/LoadingState.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { Alert } from '@/components/ui/alert.jsx';
 import { Badge } from '@/components/ui/badge.jsx';
@@ -640,14 +643,11 @@ export function CategoriesPage() {
       />
 
       {loadError ? (
-        <Alert variant="destructive" title="No se pudieron cargar las categorías">
-          <div className="grid gap-3">
-            <p>{loadError}</p>
-            <Button className="w-fit" onClick={() => loadCategories({ resetCurrentForm: true, showLoading: true }).catch(() => {})} size="sm" type="button">
-              Reintentar
-            </Button>
-          </div>
-        </Alert>
+        <ErrorState
+          title="No se pudieron cargar las categorías"
+          message={loadError}
+          onRetry={() => loadCategories({ resetCurrentForm: true, showLoading: true }).catch(() => {})}
+        />
       ) : null}
 
       {formError ? (
@@ -701,9 +701,9 @@ export function CategoriesPage() {
           </Card>
 
           <section className="grid gap-4 lg:hidden" aria-label="Categorías">
-            {isLoading ? <Card className="rounded-none border-neutral-200 bg-white p-6 text-sm text-neutral-500">Cargando categorías...</Card> : null}
+            {isLoading ? <LoadingState message="Cargando categorías..." /> : null}
             {!isLoading && !loadError && filteredCategories.length === 0 ? (
-              <Card className="rounded-none border-neutral-200 bg-white p-6 text-sm text-neutral-500">{emptyCategoriesMessage}</Card>
+              <EmptyState title={emptyCategoriesMessage} />
             ) : null}
             {!isLoading
               ? filteredCategories.map((category) => (
@@ -762,3 +762,4 @@ export function CategoriesPage() {
     </AdminPageContainer>
   );
 }
+

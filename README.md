@@ -57,7 +57,7 @@ La carpeta `dist/` no forma parte del codigo fuente: Vite la genera automaticame
 
 ## Deploy SPA
 
-`vercel.json` redirige las rutas internas al `index.html` para evitar 404 al recargar URLs de React Router en producci?n.
+`vercel.json` redirige las rutas internas al `index.html` para evitar 404 al recargar URLs de React Router en producción.
 
 ## Mapa de rutas
 

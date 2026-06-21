@@ -218,7 +218,7 @@ export async function getPendingClosurePayments() {
 export async function closeCashRegister(notes = '') {
   const client = ensureSupabaseClient();
   const normalizedNotes = notes.trim();
-  // El cierre no borra ?rdenes: la RPC asocia pagos/?rdenes al cierre y las oculta del listado activo.
+  // El cierre no borra órdenes: la RPC asocia pagos/órdenes al cierre y las oculta del listado activo.
   const { data, error } = await client.rpc('close_cash_register', {
     p_notes: normalizedNotes || null,
   });

@@ -1,8 +1,7 @@
 import { supabase } from '@/lib/supabase.js';
+import { getImageTypeConfig, validateImageFile } from '@/utils/imageValidation.js';
 
 const CATEGORY_IMAGES_BUCKET = 'category-images';
-const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 function ensureSupabaseClient() {
   if (!supabase) {
@@ -42,42 +41,8 @@ function createUniqueId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function getFileExtension(file) {
-  const extension = file.name.split('.').pop()?.toLowerCase();
-
-  if (extension === 'jpg' || extension === 'jpeg') {
-    return 'jpg';
-  }
-
-  if (extension === 'png') {
-    return 'png';
-  }
-
-  if (extension === 'webp') {
-    return 'webp';
-  }
-
-  return '';
-}
-
 export function validateCategoryImage(file) {
-  if (!file) {
-    return '';
-  }
-
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return 'Usá una imagen JPG, JPEG, PNG o WebP.';
-  }
-
-  if (file.size > MAX_IMAGE_SIZE) {
-    return 'La imagen no puede superar los 2 MB.';
-  }
-
-  if (!getFileExtension(file)) {
-    return 'El formato de imagen no es válido.';
-  }
-
-  return '';
+  return validateImageFile(file);
 }
 
 export async function getCategories() {
@@ -140,8 +105,13 @@ export async function uploadCategoryImage(file, categoryId) {
     throw new Error(validationError);
   }
 
-  const extension = getFileExtension(file);
-  const filePath = `categories/${categoryId}/${createUniqueId()}.${extension}`;
+  const imageType = getImageTypeConfig(file);
+
+  if (!imageType) {
+    throw new Error(validateCategoryImage(file));
+  }
+
+  const filePath = `categories/${categoryId}/${createUniqueId()}.${imageType.extension}`;
   const { error } = await client.storage.from(CATEGORY_IMAGES_BUCKET).upload(filePath, file, {
     cacheControl: '3600',
     upsert: false,

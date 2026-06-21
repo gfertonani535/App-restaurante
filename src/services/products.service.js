@@ -1,8 +1,7 @@
 import { supabase } from '@/lib/supabase.js';
+import { getImageTypeConfig, validateImageFile } from '@/utils/imageValidation.js';
 
 const PRODUCT_IMAGES_BUCKET = 'product-images';
-const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const PRODUCT_SELECT = `
   id,
@@ -67,24 +66,6 @@ function createUniqueId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function getFileExtension(file) {
-  const extension = file.name.split('.').pop()?.toLowerCase();
-
-  if (extension === 'jpg' || extension === 'jpeg') {
-    return 'jpg';
-  }
-
-  if (extension === 'png') {
-    return 'png';
-  }
-
-  if (extension === 'webp') {
-    return 'webp';
-  }
-
-  return '';
-}
-
 function normalizeProduct(product) {
   if (!product) {
     return null;
@@ -99,23 +80,7 @@ function normalizeProduct(product) {
 }
 
 export function validateProductImage(file) {
-  if (!file) {
-    return '';
-  }
-
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return 'Usá una imagen JPG, JPEG, PNG o WebP.';
-  }
-
-  if (file.size > MAX_IMAGE_SIZE) {
-    return 'La imagen no puede superar los 2 MB.';
-  }
-
-  if (!getFileExtension(file)) {
-    return 'El formato de imagen no es válido.';
-  }
-
-  return '';
+  return validateImageFile(file);
 }
 
 export async function getProducts() {
@@ -202,8 +167,13 @@ export async function uploadProductImage(file, productId) {
     throw new Error(validationError);
   }
 
-  const extension = getFileExtension(file);
-  const filePath = `products/${productId}/${createUniqueId()}.${extension}`;
+  const imageType = getImageTypeConfig(file);
+
+  if (!imageType) {
+    throw new Error(validateProductImage(file));
+  }
+
+  const filePath = `products/${productId}/${createUniqueId()}.${imageType.extension}`;
   const { error } = await client.storage.from(PRODUCT_IMAGES_BUCKET).upload(filePath, file, {
     cacheControl: '3600',
     upsert: false,

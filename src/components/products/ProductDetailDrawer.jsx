@@ -14,7 +14,7 @@ function formatPrice(price) {
   return price ?? '';
 }
 
-// Bottom sheet mobile con transici?n y drag hacia abajo para aplicar interacciones de Unidad 6.
+// Bottom sheet mobile con transición y drag hacia abajo para aplicar interacciones de Unidad 6.
 export function ProductDetailDrawer({ isOpen, onClose, product }) {
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);

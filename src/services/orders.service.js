@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase.js';
 
-// Servicio centralizado: mantiene las consultas de ?rdenes a Supabase fuera de los componentes.
+// Servicio centralizado: mantiene las consultas de órdenes a Supabase fuera de los componentes.
 
 const OPERATIVE_ORDER_STATUSES = ['open', 'preparing', 'ready', 'served'];
 
@@ -237,7 +237,7 @@ export async function getOrderById(orderId) {
 
 export async function createOrder(payload) {
   const client = ensureSupabaseClient();
-  // RPC: crea la orden y sus ?tems como una ?nica operaci?n consistente.
+  // RPC: crea la orden y sus ítems como una única operación consistente.
   const { data, error } = await client.rpc('create_order_with_items', {
     p_table_label: payload.tableLabel || null,
     p_customer_name: payload.customerName || null,
@@ -258,7 +258,7 @@ export async function createOrder(payload) {
 
 export async function updateOrder(orderId, payload) {
   const client = ensureSupabaseClient();
-  // RPC: actualiza orden e ?tems sin enviar precios manipulables desde React.
+  // RPC: actualiza orden e ítems sin enviar precios manipulables desde React.
   const { error } = await client.rpc('update_order_with_items', {
     p_order_id: orderId,
     p_table_label: payload.tableLabel || null,
