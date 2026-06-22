@@ -136,7 +136,7 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
         </header>
 
         <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[1.5fr_1fr] lg:overflow-hidden">
-          <section className="grid min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-4 border-b border-neutral-200 p-4 lg:border-b-0 lg:border-r">
+          <section className="grid xl:min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-4 border-b border-neutral-200 p-4 lg:border-b-0 lg:border-r">
   <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h3 className="text-xs font-bold uppercase tracking-[0.08em] text-neutral-950">
