@@ -151,7 +151,7 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
           <div className="mx-auto mb-2 h-1 w-12 rounded-full bg-neutral-300" aria-hidden="true" />
           <Button
             aria-label="Cerrar detalle del producto"
-            className="absolute right-3 top-3 size-10 min-h-10 p-0"
+            className="absolute hidden right-3 top-3 size-10 min-h-10 p-0 lg:inline-flex"
             onClick={handleCloseDrawer}
             onPointerDown={(event) => event.stopPropagation()}
             size="icon"
