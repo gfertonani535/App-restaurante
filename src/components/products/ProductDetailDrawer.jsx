@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ImageIcon, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge.jsx';
@@ -18,8 +18,14 @@ function formatPrice(price) {
 export function ProductDetailDrawer({ isOpen, onClose, product }) {
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const dragStartYRef = useRef(0);
   const dragOffsetRef = useRef(0);
+
+  const handleCloseDrawer = useCallback(() => {
+    setIsImagePreviewOpen(false);
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -29,9 +35,16 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
     const previousOverflow = document.body.style.overflow;
 
     function handleKeyDown(event) {
-      if (event.key === 'Escape') {
-        onClose();
+      if (event.key !== 'Escape') {
+        return;
       }
+
+      if (isImagePreviewOpen) {
+        setIsImagePreviewOpen(false);
+        return;
+      }
+
+      handleCloseDrawer();
     }
 
     document.body.style.overflow = 'hidden';
@@ -41,7 +54,7 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [handleCloseDrawer, isImagePreviewOpen, isOpen]);
 
   if (!product) {
     return null;
@@ -56,6 +69,7 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
     setDragOffset(0);
     setIsDragging(false);
   }
+
 
   function handleDragStart(event) {
     if (!isOpen || !isMobileViewport()) {
@@ -87,7 +101,7 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
 
     if (dragOffsetRef.current > 110) {
       resetDrag();
-      onClose();
+      handleCloseDrawer();
       return;
     }
 
@@ -110,7 +124,7 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
         isOpen ? 'pointer-events-auto bg-black/60' : 'pointer-events-none bg-black/0',
       )}
       inert={isOpen ? undefined : ''}
-      onMouseDown={onClose}
+      onMouseDown={handleCloseDrawer}
       role="presentation"
     >
       <section
@@ -138,7 +152,7 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
           <Button
             aria-label="Cerrar detalle del producto"
             className="absolute right-3 top-3 size-10 min-h-10 p-0"
-            onClick={onClose}
+            onClick={handleCloseDrawer}
             onPointerDown={(event) => event.stopPropagation()}
             size="icon"
             type="button"
@@ -151,7 +165,14 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
         <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
           <div className="aspect-[4/3] overflow-hidden rounded-md bg-neutral-100 sm:aspect-[16/9]">
             {imageSrc ? (
-              <img className="size-full object-cover" src={imageSrc} alt={product.name} />
+              <button
+                aria-label={`Ver imagen completa de ${product.name}`}
+                className="block size-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950"
+                onClick={() => setIsImagePreviewOpen(true)}
+                type="button"
+              >
+                <img className="size-full object-cover" src={imageSrc} alt={product.name} />
+              </button>
             ) : (
               <div className="grid size-full place-items-center text-neutral-400">
                 <ImageIcon className="size-10" strokeWidth={1.8} aria-hidden="true" />
@@ -187,11 +208,37 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
             </div>
           ) : null}
 
-          <Button className="mt-6 w-full" onClick={onClose} type="button">
+          <Button className="mt-6 w-full" onClick={handleCloseDrawer} type="button">
             Volver al menú
           </Button>
         </div>
       </section>
+
+      {isImagePreviewOpen && imageSrc ? (
+        <div
+          aria-labelledby="product-image-preview-title"
+          aria-modal="true"
+          className="fixed inset-0 z-[60] grid place-items-center bg-black/85 p-4 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            event.stopPropagation();
+            setIsImagePreviewOpen(false);
+          }}
+          role="dialog"
+        >
+          <h2 className="sr-only" id="product-image-preview-title">{`Imagen completa de ${product.name}`}</h2>
+          <button
+            aria-label="Cerrar imagen completa"
+            className="absolute right-4 top-4 grid size-11 place-items-center rounded-full border border-white/20 bg-black/40 text-white transition-colors hover:bg-white hover:text-neutral-950"
+            onClick={() => setIsImagePreviewOpen(false)}
+            type="button"
+          >
+            <X className="size-6" strokeWidth={2} aria-hidden="true" />
+          </button>
+          <div className="flex max-h-[90dvh] w-full max-w-6xl items-center justify-center" onMouseDown={(event) => event.stopPropagation()}>
+            <img className="max-h-[90dvh] w-full object-contain" src={imageSrc} alt={product.name} />
+          </div>
+        </div>
+      ) : null}
     </div>,
     document.body,
   );
