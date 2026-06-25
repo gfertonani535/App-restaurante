@@ -22,7 +22,7 @@ export function SearchField({
       />
       <Input
         aria-label={accessibleLabel}
-        className={cn('h-11 min-h-11 rounded-none border-neutral-200 bg-white pl-10 text-sm', inputClassName)}
+        className={cn('h-10 min-h-10 rounded-none border-neutral-200 bg-white pl-10 text-sm', inputClassName)}
         disabled={disabled}
         onChange={onChange}
         placeholder={placeholder}
