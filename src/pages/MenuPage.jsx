@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { EmptyState } from '@/components/common/EmptyState.jsx';
+import { ErrorState } from '@/components/common/ErrorState.jsx';
+import { SearchField } from '@/components/common/SearchField.jsx';
 import { CategoryFilter } from '@/components/landing/CategoryFilter.jsx';
 import { Hero } from '@/components/landing/Hero.jsx';
 import { PublicMenuFooter } from '@/components/landing/PublicMenuFooter.jsx';
 import { AppShell } from '@/components/layouts/AppShell.jsx';
 import { CardProducts } from '@/components/products/CardProducts.jsx';
 import { ProductDetailDrawer } from '@/components/products/ProductDetailDrawer.jsx';
-import { Alert } from '@/components/ui/alert.jsx';
-import { Button } from '@/components/ui/button.jsx';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { getPublicCatalog } from '@/services/menu.service.js';
 
@@ -159,18 +159,16 @@ export function MenuPage() {
     <AppShell showBottomNavigation={isAuthenticated}>
       <Hero />
 
-      <label className="relative mb-6 block">
-        <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-        <input
-          aria-label="Buscar platos o bebidas"
-          className="h-12 w-full rounded-md border border-border bg-card pl-12 pr-4 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground hover:border-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
-          disabled={isLoading}
-          onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Buscar platos o bebidas..."
-          type="search"
-          value={searchTerm}
-        />
-      </label>
+      <SearchField
+        className="mb-6"
+        disabled={isLoading}
+        iconClassName="left-4 size-5 text-muted-foreground"
+        inputClassName="h-12 rounded-md border-border bg-card pl-12 pr-4 text-base text-foreground placeholder:text-muted-foreground hover:border-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
+        label="Buscar platos o bebidas"
+        onChange={(event) => setSearchTerm(event.target.value)}
+        placeholder="Buscar platos o bebidas..."
+        value={searchTerm}
+      />
 
       <CategoryFilter categories={publicCategories} activeCategoryId={activeCategoryId} onSelectCategory={setActiveCategoryId} />
 
@@ -182,27 +180,14 @@ export function MenuPage() {
         </section>
       ) : null}
 
-      {loadError ? (
-        <Alert variant="destructive" title="No pudimos cargar el menú.">
-          <div className="grid gap-3">
-            <p>Intentá nuevamente.</p>
-            <Button className="w-fit" onClick={handleRetryLoad} size="sm" type="button">
-              Reintentar
-            </Button>
-          </div>
-        </Alert>
-      ) : null}
+      {loadError ? <ErrorState title="No pudimos cargar el menú." message="Intentá nuevamente." onRetry={handleRetryLoad} /> : null}
 
       {isCatalogEmpty ? (
-        <div className="rounded-md border border-border bg-card p-6 text-sm leading-6 text-muted-foreground">
-          No hay productos disponibles en este momento.
-        </div>
+        <EmptyState className="rounded-md border-border bg-card" title="No hay productos disponibles en este momento." />
       ) : null}
 
       {isSearchEmpty ? (
-        <div className="rounded-md border border-border bg-card p-6 text-sm leading-6 text-muted-foreground">
-          No encontramos productos para tu búsqueda.
-        </div>
+        <EmptyState className="rounded-md border-border bg-card" title="No encontramos productos para tu búsqueda." />
       ) : null}
 
       {!isLoading && !loadError && filteredProducts.length > 0 ? (

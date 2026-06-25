@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase.js';
-import { getImageTypeConfig, validateImageFile } from '@/utils/imageValidation.js';
+import { getValidatedImageType, validateImageFile } from '@/utils/imageValidation.js';
 
 const PRODUCT_IMAGES_BUCKET = 'product-images';
 
@@ -161,17 +161,7 @@ export async function updateProductPrice(productId, price) {
 
 export async function uploadProductImage(file, productId) {
   const client = ensureSupabaseClient();
-  const validationError = validateProductImage(file);
-
-  if (validationError) {
-    throw new Error(validationError);
-  }
-
-  const imageType = getImageTypeConfig(file);
-
-  if (!imageType) {
-    throw new Error(validateProductImage(file));
-  }
+  const imageType = getValidatedImageType(file);
 
   const filePath = `products/${productId}/${createUniqueId()}.${imageType.extension}`;
   const { error } = await client.storage.from(PRODUCT_IMAGES_BUCKET).upload(filePath, file, {

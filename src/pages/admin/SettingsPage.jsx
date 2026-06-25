@@ -9,7 +9,6 @@ import {
   Mail,
   PlusCircle,
   RefreshCw,
-  Search,
   ShieldCheck,
   Store,
   UserRoundCog,
@@ -17,7 +16,13 @@ import {
   X,
 } from 'lucide-react';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
+import { FieldError } from '@/components/common/FieldError.jsx';
+import { FormField } from '@/components/common/FormField.jsx';
+import { MetricCard } from '@/components/common/MetricCard.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
+import { SearchField } from '@/components/common/SearchField.jsx';
+import { StatusBadge } from '@/components/common/StatusBadge.jsx';
+import { TableStateRow } from '@/components/common/TableStateRow.jsx';
 import { Alert } from '@/components/ui/alert.jsx';
 import { Badge } from '@/components/ui/badge.jsx';
 import { Button } from '@/components/ui/button.jsx';
@@ -67,23 +72,6 @@ function normalizeText(value) {
     .trim();
 }
 
-function MetricCard({ icon: Icon, label, value, helper }) {
-  return (
-    <Card className="rounded-none border-neutral-200 bg-white">
-      <CardContent className="flex min-h-[112px] items-center gap-5 p-6">
-        <span className="grid size-14 place-items-center rounded-full bg-neutral-100 text-neutral-950">
-          <Icon className="size-6" aria-hidden="true" />
-        </span>
-        <div>
-          <p className="text-sm font-medium text-neutral-500">{label}</p>
-          <p className="mt-1 text-3xl font-semibold leading-none text-neutral-950">{value}</p>
-          {helper ? <p className="mt-2 text-xs font-semibold text-neutral-400">{helper}</p> : null}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function SettingsTabs({ activeTab, onTabChange }) {
   return (
     <div className="flex gap-8 border-b border-neutral-200" role="tablist" aria-label="Secciones de configuración">
@@ -116,14 +104,6 @@ function RoleBadge({ role }) {
   const meta = roleByValue[role] ?? roleByValue.staff;
 
   return <Badge variant="secondary">{meta.label}</Badge>;
-}
-
-function FieldError({ children }) {
-  if (!children) {
-    return null;
-  }
-
-  return <p className="text-xs font-medium text-red-700">{children}</p>;
 }
 
 function EditUserModal({
@@ -300,8 +280,7 @@ function GeneralSettingsSection({
               <p className="mt-1 text-sm text-neutral-500">Nombre y descripción principal.</p>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="restaurant-name">Nombre del restaurante</Label>
+              <FormField error={errors.restaurantName} htmlFor="restaurant-name" label="Nombre del restaurante">
                 <Input
                   className="rounded-none border-neutral-200 bg-white"
                   disabled={isReadOnly}
@@ -309,10 +288,8 @@ function GeneralSettingsSection({
                   onChange={(event) => onChange('restaurantName', event.target.value)}
                   value={form.restaurantName}
                 />
-                <FieldError>{errors.restaurantName}</FieldError>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="short-description">Descripción corta</Label>
+              </FormField>
+              <FormField htmlFor="short-description" label="Descripción corta">
                 <Input
                   className="rounded-none border-neutral-200 bg-white"
                   disabled={isReadOnly}
@@ -320,7 +297,7 @@ function GeneralSettingsSection({
                   onChange={(event) => onChange('shortDescription', event.target.value)}
                   value={form.shortDescription}
                 />
-              </div>
+              </FormField>
             </div>
           </section>
 
@@ -330,8 +307,7 @@ function GeneralSettingsSection({
               <p className="mt-1 text-sm text-neutral-500">Datos que pueden mostrarse en el menú público.</p>
             </div>
             <div className="grid gap-4 lg:grid-cols-3">
-              <div className="grid gap-2">
-                <Label htmlFor="whatsapp">WhatsApp</Label>
+              <FormField htmlFor="whatsapp" label="WhatsApp">
                 <Input
                   className="rounded-none border-neutral-200 bg-white"
                   disabled={isReadOnly}
@@ -339,9 +315,8 @@ function GeneralSettingsSection({
                   onChange={(event) => onChange('whatsapp', event.target.value)}
                   value={form.whatsapp}
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="instagram">Instagram</Label>
+              </FormField>
+              <FormField htmlFor="instagram" label="Instagram">
                 <Input
                   className="rounded-none border-neutral-200 bg-white"
                   disabled={isReadOnly}
@@ -349,9 +324,8 @@ function GeneralSettingsSection({
                   onChange={(event) => onChange('instagram', event.target.value)}
                   value={form.instagram}
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="facebook">Facebook</Label>
+              </FormField>
+              <FormField htmlFor="facebook" label="Facebook">
                 <Input
                   className="rounded-none border-neutral-200 bg-white"
                   disabled={isReadOnly}
@@ -359,11 +333,10 @@ function GeneralSettingsSection({
                   onChange={(event) => onChange('facebook', event.target.value)}
                   value={form.facebook}
                 />
-              </div>
+              </FormField>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="address">Dirección</Label>
+              <FormField htmlFor="address" label="Dirección">
                 <Input
                   className="rounded-none border-neutral-200 bg-white"
                   disabled={isReadOnly}
@@ -371,9 +344,8 @@ function GeneralSettingsSection({
                   onChange={(event) => onChange('address', event.target.value)}
                   value={form.address}
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="opening-hours">Horario de atención</Label>
+              </FormField>
+              <FormField htmlFor="opening-hours" label="Horario de atención">
                 <Input
                   className="rounded-none border-neutral-200 bg-white"
                   disabled={isReadOnly}
@@ -381,7 +353,7 @@ function GeneralSettingsSection({
                   onChange={(event) => onChange('openingHours', event.target.value)}
                   value={form.openingHours}
                 />
-              </div>
+              </FormField>
             </div>
           </section>
 
@@ -391,8 +363,7 @@ function GeneralSettingsSection({
               <p className="mt-1 text-sm text-neutral-500">Texto del footer y moneda del sistema.</p>
             </div>
             <div className="grid gap-4 lg:grid-cols-[1fr_220px]">
-              <div className="grid gap-2">
-                <Label htmlFor="footer-text">Texto del footer</Label>
+              <FormField htmlFor="footer-text" label="Texto del footer">
                 <Textarea
                   className="rounded-none border-neutral-200 bg-white"
                   disabled={isReadOnly}
@@ -400,9 +371,8 @@ function GeneralSettingsSection({
                   onChange={(event) => onChange('footerText', event.target.value)}
                   value={form.footerText}
                 />
-              </div>
-              <div className="grid h-fit gap-2">
-                <Label htmlFor="currency">Moneda</Label>
+              </FormField>
+              <FormField className="h-fit" error={errors.currency} htmlFor="currency" label="Moneda">
                 <Input
                   className="rounded-none border-neutral-200 bg-white"
                   disabled={isReadOnly}
@@ -410,8 +380,7 @@ function GeneralSettingsSection({
                   onChange={(event) => onChange('currency', event.target.value.toUpperCase())}
                   value={form.currency}
                 />
-                <FieldError>{errors.currency}</FieldError>
-              </div>
+              </FormField>
             </div>
           </section>
 
@@ -509,17 +478,13 @@ function UsersSettingsSection({
 
         <CardContent className="p-0">
           <div className="border-b border-neutral-200 p-3 sm:p-2">
-            <label className="relative block max-w-sm">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
-              <Input
-                aria-label="Buscar usuarios..."
-                className="rounded-none border-neutral-200 bg-white pl-10 text-sm"
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Buscar usuarios..."
-                type="search"
-                value={searchTerm}
-              />
-            </label>
+            <SearchField
+              className="max-w-sm"
+              inputClassName="rounded-none border-neutral-200 bg-white pl-10 text-sm"
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Buscar usuarios..."
+              value={searchTerm}
+            />
           </div>
 
           <div className="overflow-x-auto">
@@ -535,20 +500,10 @@ function UsersSettingsSection({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell className="py-10 text-center text-neutral-500" colSpan={6}>
-                      Cargando usuarios...
-                    </TableCell>
-                  </TableRow>
-                ) : null}
+                {isLoading ? <TableStateRow colSpan={6}>Cargando usuarios...</TableStateRow> : null}
 
                 {!isLoading && filteredUsers.length === 0 ? (
-                  <TableRow>
-                    <TableCell className="py-10 text-center text-neutral-500" colSpan={6}>
-                      Todavía no hay usuarios registrados.
-                    </TableCell>
-                  </TableRow>
+                  <TableStateRow colSpan={6}>Todavía no hay usuarios registrados.</TableStateRow>
                 ) : null}
 
                 {!isLoading
@@ -564,10 +519,7 @@ function UsersSettingsSection({
                           </TableCell>
                           <TableCell className="max-w-[360px] text-sm text-neutral-600">{role.permissions}</TableCell>
                           <TableCell>
-                            <Badge className="gap-2" variant="success">
-                              <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-                              Activo
-                            </Badge>
+                            <StatusBadge dot label="Activo" variant="success" />
                           </TableCell>
                           <TableCell className="text-right">
                             <Button

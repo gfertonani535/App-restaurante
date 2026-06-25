@@ -1,4 +1,5 @@
 import { Download } from 'lucide-react';
+import { Button } from '@/components/ui/button.jsx';
 import { formatCurrency } from '@/lib/cashClosing.js';
 
 const paymentMethodLabels = {
@@ -38,14 +39,16 @@ export function LatestTransactionsTable({ transactions, onExport, onOpenTransact
     <section className="border border-neutral-300 bg-white">
       <div className="flex flex-col gap-3 border-b border-neutral-300 bg-white px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <h2 className="text-xl font-semibold text-neutral-950 sm:text-2xl">Últimas Transacciones</h2>
-        <button
-          className="inline-flex min-h-10 items-center gap-2 px-3 text-xs font-bold uppercase tracking-[0.12em] text-neutral-500 transition-colors hover:text-neutral-950"
+        <Button
+          className="text-neutral-500 hover:text-neutral-950"
           onClick={onExport}
+          size="sm"
           type="button"
+          variant="ghost"
         >
           <Download className="size-4" aria-hidden="true" />
           Exportar CSV
-        </button>
+        </Button>
       </div>
 
       <div className="overflow-x-auto">
@@ -85,14 +88,15 @@ export function LatestTransactionsTable({ transactions, onExport, onOpenTransact
       ) : null}
 
       <footer className="flex justify-center border-t border-neutral-200 px-4 py-4">
-        <button
-          className="text-xs font-bold uppercase tracking-[0.12em] text-neutral-500 underline underline-offset-4 transition-colors hover:text-neutral-950"
+        <Button
+          className="text-neutral-500 underline underline-offset-4 hover:text-neutral-950"
           onClick={onOpenTransactions}
           type="button"
           disabled={transactions.length === 0}
+          variant="ghost"
         >
           Ver todas las transacciones
-        </button>
+        </Button>
       </footer>
     </section>
   );

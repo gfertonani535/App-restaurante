@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase.js';
-import { getImageTypeConfig, validateImageFile } from '@/utils/imageValidation.js';
+import { getValidatedImageType, validateImageFile } from '@/utils/imageValidation.js';
 
 const CATEGORY_IMAGES_BUCKET = 'category-images';
 
@@ -99,17 +99,7 @@ export async function updateCategory(id, payload) {
 
 export async function uploadCategoryImage(file, categoryId) {
   const client = ensureSupabaseClient();
-  const validationError = validateCategoryImage(file);
-
-  if (validationError) {
-    throw new Error(validationError);
-  }
-
-  const imageType = getImageTypeConfig(file);
-
-  if (!imageType) {
-    throw new Error(validateCategoryImage(file));
-  }
+  const imageType = getValidatedImageType(file);
 
   const filePath = `categories/${categoryId}/${createUniqueId()}.${imageType.extension}`;
   const { error } = await client.storage.from(CATEGORY_IMAGES_BUCKET).upload(filePath, file, {

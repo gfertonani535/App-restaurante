@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Banknote, Building2, CreditCard, Minus, Plus, Search, Trash2, Wallet, X } from 'lucide-react';
+import { Banknote, Building2, CreditCard, Minus, Plus, Trash2, Wallet, X } from 'lucide-react';
+import { IconButton } from '@/components/common/IconButton.jsx';
+import { SearchField } from '@/components/common/SearchField.jsx';
+import { Button } from '@/components/ui/button.jsx';
+import { Input } from '@/components/ui/input.jsx';
 import { cn } from '@/lib/utils';
 
 const paymentMethods = [
@@ -125,14 +129,9 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
       <div className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300 bg-white sm:max-h-[86dvh]">
         <header className="flex min-h-16 items-center justify-between border-b border-neutral-200 px-5">
           <h2 className="text-lg font-bold leading-tight">{mode === 'edit' ? 'Editar orden' : 'Nueva orden'}</h2>
-          <button
-            className="grid size-10 place-items-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={onClose}
-            type="button"
-            aria-label="Cerrar modal"
-          >
+          <IconButton className="rounded-full" label="Cerrar modal" onClick={onClose}>
             <X className="size-5" aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
 
         <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[1.5fr_1fr] lg:overflow-hidden">
@@ -143,19 +142,13 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
         Productos
       </h3>
 
-      <label className="relative w-full sm:max-w-sm">
-        <Search
-          className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400"
-          aria-hidden="true"
-        />
-        <input
-          className="h-10 w-full rounded-lg border border-neutral-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
-          onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Buscar productos..."
-          type="search"
-          value={searchTerm}
-        />
-      </label>
+      <SearchField
+        className="sm:max-w-sm"
+        inputClassName="h-10 min-h-10 rounded-lg border-neutral-200 bg-white pl-9 pr-3 text-sm focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+        onChange={(event) => setSearchTerm(event.target.value)}
+        placeholder="Buscar productos..."
+        value={searchTerm}
+      />
     </div>
 
     <div className="min-h-100 overflow-y-auto pr-1">
@@ -209,7 +202,7 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
             <div className="grid gap-4 border-b border-neutral-200 p-5 sm:grid-cols-2 xl:grid-cols-[37px_minmax(0,1fr)_minmax(0,1fr)]">
               <label className="grid gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-[0.08em]">Mesa</span>
-                <input
+                <Input
                   className="h-10 xl:w-12 rounded-lg border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
                   disabled={isSaving}
                   onChange={(event) => setTableOrLocation(event.target.value)}
@@ -219,7 +212,7 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
               </label>
               <label className="grid gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-[0.08em]">Cliente</span>
-                <input
+                <Input
                   className="h-10 rounded-lg border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
                   disabled={isSaving}
                   onChange={(event) => setCustomerOrWaiter(event.target.value)}
@@ -229,7 +222,7 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
               </label>
               <label className="grid gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-[0.08em]">Notas</span>
-                <input
+                <Input
                   className="h-10 rounded-lg border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
                   disabled={isSaving}
                   onChange={(event) => setNotes(event.target.value)}
@@ -242,15 +235,17 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
             <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-[0.08em]">Resumen de productos</h3>
-                <button
-                  className="inline-flex items-center gap-1 text-xs text-neutral-500 transition-colors hover:text-neutral-950"
+                <Button
+                  className="min-h-8 px-2 text-neutral-500 hover:text-neutral-950"
                   disabled={isSaving}
                   onClick={() => setItems([])}
+                  size="sm"
                   type="button"
+                  variant="ghost"
                 >
                   Vaciar
                   <Trash2 className="size-4" aria-hidden="true" />
-                </button>
+                </Button>
               </div>
 
               {items.length === 0 ? (
@@ -272,34 +267,34 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center overflow-hidden rounded-full border border-neutral-200">
-                          <button
-                            className="grid size-8 place-items-center hover:bg-neutral-100"
+                          <IconButton
+                            className="size-8 rounded-full hover:bg-neutral-100"
                             disabled={isSaving}
+                            label={`Restar ${item.name}`}
                             onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                            type="button"
-                            aria-label={`Restar ${item.name}`}
                           >
                             <Minus className="size-4" aria-hidden="true" />
-                          </button>
+                          </IconButton>
                           <span className="grid h-8 min-w-9 place-items-center text-sm font-bold">{item.quantity}</span>
-                          <button
-                            className="grid size-8 place-items-center hover:bg-neutral-100"
+                          <IconButton
+                            className="size-8 rounded-full hover:bg-neutral-100"
                             disabled={isSaving}
+                            label={`Sumar ${item.name}`}
                             onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                            type="button"
-                            aria-label={`Sumar ${item.name}`}
                           >
                             <Plus className="size-4" aria-hidden="true" />
-                          </button>
+                          </IconButton>
                         </div>
-                        <button
-                          className="text-xs font-bold uppercase tracking-[0.08em] text-neutral-400 hover:text-red-700"
+                        <Button
+                          className="min-h-8 px-2 text-neutral-400 hover:text-red-700"
                           disabled={isSaving}
                           onClick={() => removeItem(item.productId)}
+                          size="sm"
                           type="button"
+                          variant="ghost"
                         >
                           Quitar
-                        </button>
+                        </Button>
                       </div>
                     </article>
                   ))}
@@ -317,32 +312,32 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
         </div>
 
         <footer className="flex flex-col justify-end gap-3 border-t border-neutral-200 p-4 sm:flex-row sm:p-5">
-          <button
-            className="min-h-11 rounded-lg border border-neutral-200 bg-white px-5 text-xs font-bold uppercase tracking-[0.06em] hover:border-neutral-950"
+          <Button
             disabled={isSaving}
             onClick={onClose}
             type="button"
+            variant="secondary"
           >
             Cancelar
-          </button>
-          <button
-            className="min-h-11 rounded-lg border border-neutral-200 bg-white px-5 text-xs font-bold uppercase tracking-[0.06em] hover:border-neutral-950 disabled:opacity-40"
+          </Button>
+          <Button
             disabled={items.length === 0 || isSaving}
             onClick={() => handleSave('unpaid')}
             type="button"
+            variant="secondary"
           >
             Ordenar sin pagar
-          </button>
+          </Button>
           <div className="relative">
-            <button
+            <Button
               aria-expanded={isPaymentMenuOpen}
-              className="min-h-11 w-full rounded-lg bg-neutral-950 px-5 text-xs font-bold uppercase tracking-[0.06em] text-white transition-colors hover:bg-neutral-800 disabled:opacity-40 sm:w-auto"
+              className="w-full sm:w-auto"
               disabled={items.length === 0 || total <= 0 || isSaving}
               onClick={() => setIsPaymentMenuOpen((isOpen) => !isOpen)}
               type="button"
             >
               {isSaving ? 'Guardando...' : 'Confirmar pago'}
-            </button>
+            </Button>
 
             {isPaymentMenuOpen ? (
               <div className="absolute bottom-[calc(100%+0.5rem)] right-0 z-10 grid w-60 origin-bottom-right gap-2 rounded-xl border border-neutral-200 bg-white p-2 shadow-sm motion-safe:animate-[payment-popover-in_140ms_ease-out]">
@@ -350,16 +345,18 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
                   const Icon = method.icon;
 
                   return (
-                    <button
-                      className="inline-flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 text-left text-xs font-bold uppercase tracking-[0.06em] text-neutral-950 transition-colors hover:border-neutral-950 hover:bg-neutral-50 disabled:opacity-40"
+                    <Button
+                      className="justify-start rounded-lg border-transparent px-3 text-left hover:border-neutral-950"
                       disabled={isSaving}
                       key={method.id}
                       onClick={() => handleConfirmPaid(method.id)}
+                      size="sm"
                       type="button"
+                      variant="secondary"
                     >
                       <Icon className="size-4" aria-hidden="true" />
                       {method.label}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

@@ -42,3 +42,19 @@ export function validateImageFile(file) {
 
   return '';
 }
+
+export function getValidatedImageType(file) {
+  const validationError = validateImageFile(file);
+
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
+  const imageType = getImageTypeConfig(file);
+
+  if (!imageType) {
+    throw new Error(`Usá una imagen ${getAllowedImageLabels()}.`);
+  }
+
+  return imageType;
+}

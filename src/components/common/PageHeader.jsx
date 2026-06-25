@@ -1,5 +1,4 @@
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input.jsx';
+import { SearchField } from '@/components/common/SearchField.jsx';
 import { cn } from '@/lib/utils';
 
 export function PageHeader({
@@ -25,17 +24,7 @@ export function PageHeader({
       {(hasSearch || hasActions) ? (
         <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[460px]">
           {hasSearch ? (
-            <label className="relative w-full">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
-              <Input
-                aria-label={searchPlaceholder}
-                className="h-11 min-h-11 rounded-none border-neutral-200 bg-white pl-10 text-sm"
-                onChange={onSearchChange}
-                placeholder={searchPlaceholder}
-                type="search"
-                value={searchValue}
-              />
-            </label>
+            <SearchField onChange={onSearchChange} placeholder={searchPlaceholder} value={searchValue} />
           ) : null}
 
           {hasActions ? (

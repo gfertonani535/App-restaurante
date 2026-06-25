@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, Download, Filter, X } from 'lucide-react';
 import { CashClosingHistoryTable } from '@/components/backoffice/cash-closing/CashClosingHistoryTable.jsx';
+import { IconButton } from '@/components/common/IconButton.jsx';
+import { Button } from '@/components/ui/button.jsx';
+import { Input } from '@/components/ui/input.jsx';
 import { formatCurrency } from '@/lib/cashClosing.js';
 
 const paymentMethodLabels = {
@@ -77,21 +80,16 @@ export function CashClosingHistoryModal({
       <div className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden border border-neutral-300 bg-white sm:max-h-[88dvh]">
         <header className="flex min-h-16 items-center justify-between border-b border-neutral-300 px-5 sm:min-h-24 sm:px-8">
           <h2 className="text-2xl font-semibold text-neutral-950 sm:text-3xl">Registro Histórico</h2>
-          <button
-            className="grid size-11 place-items-center text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={onClose}
-            type="button"
-            aria-label="Cerrar modal"
-          >
+          <IconButton className="size-11 rounded-none" label="Cerrar modal" onClick={onClose}>
             <X className="size-6" aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-8">
           <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <label className="relative w-full max-w-sm">
-              <input
-                className="h-14 w-full border border-neutral-300 bg-white pl-5 pr-12 text-base outline-none transition-colors placeholder:text-neutral-400 focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+              <Input
+                className="h-14 rounded-none border-neutral-300 bg-white pl-5 pr-12 text-base"
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Buscar por fecha..."
                 type="search"
@@ -100,13 +98,13 @@ export function CashClosingHistoryModal({
               <CalendarDays className="absolute right-4 top-1/2 size-5 -translate-y-1/2 text-neutral-500" aria-hidden="true" />
             </label>
 
-            <button
-              className="inline-flex min-h-12 items-center justify-center gap-2 border border-neutral-300 bg-surface-low px-5 text-sm text-neutral-950 transition-colors hover:border-neutral-950"
+            <Button
               type="button"
+              variant="secondary"
             >
               <Filter className="size-4" aria-hidden="true" />
               Filtros
-            </button>
+            </Button>
           </div>
 
           <CashClosingHistoryTable
@@ -123,13 +121,14 @@ export function CashClosingHistoryModal({
                   <h3 className="text-xl font-semibold text-neutral-950">Detalle del cierre #{selectedRecord.closureNumber}</h3>
                   <p className="mt-1 text-sm text-neutral-500">{formatDateTime(selectedRecord.closedAt)}</p>
                 </div>
-                <button
-                  className="border border-neutral-300 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] transition-colors hover:border-neutral-950"
+                <Button
                   onClick={() => onPrintRecord(selectedRecord)}
+                  size="sm"
                   type="button"
+                  variant="secondary"
                 >
                   Imprimir cierre
-                </button>
+                </Button>
               </div>
 
               <div className="grid gap-x-10 gap-y-1 md:grid-cols-2">
@@ -194,14 +193,14 @@ export function CashClosingHistoryModal({
         </div>
 
         <footer className="flex justify-end border-t border-neutral-300 bg-white px-5 py-5 sm:px-8 sm:py-6">
-          <button
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 bg-neutral-950 px-8 text-xs font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-neutral-800 sm:w-auto"
+          <Button
+            className="w-full sm:w-auto"
             onClick={onExport}
             type="button"
           >
             <Download className="size-4" aria-hidden="true" />
             Exportar Reporte
-          </button>
+          </Button>
         </footer>
       </div>
     </div>

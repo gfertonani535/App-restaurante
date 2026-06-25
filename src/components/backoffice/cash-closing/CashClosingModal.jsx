@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Banknote, CreditCard, SendToBack, Wallet, X } from 'lucide-react';
+import { IconButton } from '@/components/common/IconButton.jsx';
+import { Button } from '@/components/ui/button.jsx';
+import { Textarea } from '@/components/ui/textarea.jsx';
 import { formatCurrency } from '@/lib/cashClosing.js';
 
 function SummaryRow({ icon: Icon, label, value }) {
@@ -36,15 +39,14 @@ export function CashClosingModal({ isSaving = false, summary, onClose, onConfirm
             <h2 className="text-xl font-semibold text-neutral-950 sm:text-2xl">Confirmar cierre de caja</h2>
             <p className="mt-1 text-sm text-neutral-500">Se cerrarán las órdenes pagadas incluidas en este cierre.</p>
           </div>
-          <button
-            className="grid size-11 place-items-center text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40"
+          <IconButton
+            className="size-11 rounded-none"
             disabled={isSaving}
+            label="Cerrar modal"
             onClick={onClose}
-            type="button"
-            aria-label="Cerrar modal"
           >
             <X className="size-6" aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
 
         <div className="grid min-h-0 gap-6 overflow-y-auto p-5 sm:p-6">
@@ -75,8 +77,8 @@ export function CashClosingModal({ isSaving = false, summary, onClose, onConfirm
 
           <label className="grid gap-3">
             <span className="text-xs font-bold uppercase tracking-[0.08em] text-neutral-950">Nota opcional</span>
-            <textarea
-              className="min-h-24 resize-none border border-neutral-300 bg-white p-3 text-sm outline-none transition-colors focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+            <Textarea
+              className="min-h-24 resize-none rounded-none border-neutral-300 bg-white p-3 text-sm"
               disabled={isSaving}
               onChange={(event) => setNotes(event.target.value)}
               placeholder="Observaciones del cierre..."
@@ -86,22 +88,21 @@ export function CashClosingModal({ isSaving = false, summary, onClose, onConfirm
         </div>
 
         <footer className="flex flex-col justify-end gap-3 border-t border-neutral-300 bg-background p-5 sm:flex-row sm:p-6">
-          <button
-            className="min-h-11 border border-neutral-300 bg-white px-5 text-xs font-bold uppercase tracking-[0.08em] text-neutral-950 transition-colors hover:border-neutral-950 disabled:cursor-not-allowed disabled:opacity-40"
+          <Button
             disabled={isSaving}
             onClick={onClose}
             type="button"
+            variant="secondary"
           >
             Cancelar
-          </button>
-          <button
-            className="min-h-11 bg-neutral-950 px-5 text-xs font-bold uppercase tracking-[0.08em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+          </Button>
+          <Button
             disabled={isSaving}
             onClick={() => onConfirm(notes)}
             type="button"
           >
             {isSaving ? 'Cerrando caja...' : 'Confirmar cierre'}
-          </button>
+          </Button>
         </footer>
       </div>
     </div>

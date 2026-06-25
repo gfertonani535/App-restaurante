@@ -14,15 +14,20 @@ import {
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
 import { EmptyState } from '@/components/common/EmptyState.jsx';
 import { ErrorState } from '@/components/common/ErrorState.jsx';
+import { FieldError } from '@/components/common/FieldError.jsx';
+import { FormField } from '@/components/common/FormField.jsx';
+import { IconButton } from '@/components/common/IconButton.jsx';
 import { LoadingState } from '@/components/common/LoadingState.jsx';
+import { MetricCard } from '@/components/common/MetricCard.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
+import { StatusBadge } from '@/components/common/StatusBadge.jsx';
+import { SwitchField } from '@/components/common/SwitchField.jsx';
+import { TableStateRow } from '@/components/common/TableStateRow.jsx';
 import { Alert } from '@/components/ui/alert.jsx';
-import { Badge } from '@/components/ui/badge.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx';
 import { Input } from '@/components/ui/input.jsx';
 import { Label } from '@/components/ui/label.jsx';
-import { Switch } from '@/components/ui/switch.jsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
 import {
   createCategory,
@@ -71,12 +76,7 @@ function getProductCount(categoryId, productCounts) {
 }
 
 function CategoryStatus({ isActive }) {
-  return (
-    <Badge className="gap-2 text-sm normal-case tracking-normal" variant={isActive ? 'success' : 'muted'}>
-      <span className={cn('size-1.5 rounded-full', isActive ? 'bg-emerald-500' : 'bg-neutral-400')} aria-hidden="true" />
-      {isActive ? 'Activa' : 'Inactiva'}
-    </Badge>
-  );
+  return <StatusBadge dot label={isActive ? 'Activa' : 'Inactiva'} variant={isActive ? 'success' : 'muted'} />;
 }
 
 function CategoryThumbnail({ imagePath, name, previewUrl = '', size = 'sm' }) {
@@ -144,7 +144,7 @@ function CategoryImageInput({ disabled, error, form, onSelectFile }) {
         ref={inputRef}
         type="file"
       />
-      {error ? <p className="text-xs font-medium text-red-700">{error}</p> : null}
+      <FieldError>{error}</FieldError>
     </div>
   );
 }
@@ -163,21 +163,19 @@ function CategoryFormPanel({
     <Card className="rounded-none border-neutral-200 bg-white shadow-none lg:shadow-[0_16px_50px_rgba(15,15,15,0.06)]">
       <CardHeader className="flex-row items-center justify-between border-neutral-200 px-5 sm:px-6">
         <CardTitle>{isEditMode ? 'Editar categoría' : 'Nueva categoría'}</CardTitle>
-        <button
-          aria-label="Cerrar formulario de categoría"
-          className="grid size-9 place-items-center text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-950 disabled:cursor-not-allowed disabled:opacity-50"
+        <IconButton
+          className="size-9 rounded-none hover:bg-neutral-50"
           disabled={isSaving}
+          label="Cerrar formulario de categoría"
           onClick={onCancel}
-          type="button"
         >
           <X className="size-5" aria-hidden="true" />
-        </button>
+        </IconButton>
       </CardHeader>
       <CardContent className="grid gap-5 p-5 sm:p-6">
         <CategoryImageInput disabled={isSaving} error={errors.image} form={form} onSelectFile={onImageChange} />
 
-        <div className="grid gap-2">
-          <Label htmlFor="category-name">Nombre de la categoría</Label>
+        <FormField error={errors.name} htmlFor="category-name" label="Nombre de la categoría">
           <Input
             className="rounded-none border-neutral-200 bg-white"
             disabled={isSaving}
@@ -186,11 +184,9 @@ function CategoryFormPanel({
             placeholder="Ej: Pizzas"
             value={form.name}
           />
-          {errors.name ? <p className="text-xs font-medium text-red-700">{errors.name}</p> : null}
-        </div>
+        </FormField>
 
-        <div className="grid gap-2">
-          <Label htmlFor="category-order">Orden de aparición</Label>
+        <FormField error={errors.displayOrder} htmlFor="category-order" label="Orden de aparición">
           <Input
             className="rounded-none border-neutral-200 bg-white"
             disabled={isSaving}
@@ -201,13 +197,14 @@ function CategoryFormPanel({
             type="number"
             value={form.displayOrder}
           />
-          {errors.displayOrder ? <p className="text-xs font-medium text-red-700">{errors.displayOrder}</p> : null}
-        </div>
+        </FormField>
 
-        <div className="flex items-center justify-between gap-4">
-          <Label>Categoría activa</Label>
-          <Switch checked={form.isActive} disabled={isSaving} onClick={() => onChange('isActive', !form.isActive)} />
-        </div>
+        <SwitchField
+          checked={form.isActive}
+          disabled={isSaving}
+          label="Categoría activa"
+          onCheckedChange={(value) => onChange('isActive', value)}
+        />
 
         <div className="grid gap-3 pt-2 sm:grid-cols-2">
           <Button disabled={isSaving} onClick={onCancel} type="button" variant="secondary">
@@ -240,23 +237,6 @@ function CategoryMobileCard({ category, onEdit, productCount }) {
         <Button className="w-full" onClick={() => onEdit(category)} type="button" variant="secondary">
           Editar
         </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-function MetricCard({ helper, icon: Icon, label, value }) {
-  return (
-    <Card className="rounded-none border-neutral-200 bg-white">
-      <CardContent className="flex items-center justify-between gap-4 p-6">
-        <div>
-          <p className="mb-4 text-xs font-bold uppercase tracking-[0.08em] text-neutral-400">{label}</p>
-          <p className="text-4xl font-semibold leading-none text-neutral-950">{value}</p>
-          <p className="mt-3 text-sm font-medium text-neutral-500">{helper}</p>
-        </div>
-        <span className="grid size-12 place-items-center rounded-md bg-neutral-100 text-neutral-950">
-          <Icon className="size-5" aria-hidden="true" />
-        </span>
       </CardContent>
     </Card>
   );
@@ -569,23 +549,11 @@ export function CategoriesPage() {
 
   const renderTableBody = () => {
     if (isLoading) {
-      return (
-        <TableRow>
-          <TableCell className="py-10 text-center text-neutral-500" colSpan={6}>
-            Cargando categorías...
-          </TableCell>
-        </TableRow>
-      );
+      return <TableStateRow colSpan={6}>Cargando categorías...</TableStateRow>;
     }
 
     if (!loadError && filteredCategories.length === 0) {
-      return (
-        <TableRow>
-          <TableCell className="py-10 text-center text-neutral-500" colSpan={6}>
-            {emptyCategoriesMessage}
-          </TableCell>
-        </TableRow>
-      );
+      return <TableStateRow colSpan={6}>{emptyCategoriesMessage}</TableStateRow>;
     }
 
     return filteredCategories.map((category) => (
@@ -733,12 +701,13 @@ export function CategoriesPage() {
       </div>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <MetricCard helper={`${activeCount} activas`} icon={Tag} label="Total categorías" value={String(categories.length)} />
-        <MetricCard helper="productos" icon={Package} label="Productos" value={String(productStats.totalProducts)} />
+        <MetricCard helper={`${activeCount} activas`} icon={Tag} label="Total categorías" layout="split" value={String(categories.length)} />
+        <MetricCard helper="productos" icon={Package} label="Productos" layout="split" value={String(productStats.totalProducts)} />
         <MetricCard
           helper={`${mostUsedCategory ? getProductCount(mostUsedCategory.id, productStats.counts) : 0} productos`}
           icon={BarChart3}
           label="Categoría más usada"
+          layout="split"
           value={mostUsedCategory?.name ?? 'Sin datos'}
         />
       </section>
@@ -762,4 +731,3 @@ export function CategoriesPage() {
     </AdminPageContainer>
   );
 }
-

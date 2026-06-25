@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Filter, Plus, Search } from 'lucide-react';
+import { Filter, Plus } from 'lucide-react';
 import { PriceInlineEditor } from '@/components/backoffice/PriceInlineEditor.jsx';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
 import { EmptyState } from '@/components/common/EmptyState.jsx';
 import { ErrorState } from '@/components/common/ErrorState.jsx';
 import { LoadingState } from '@/components/common/LoadingState.jsx';
+import { MetricCard } from '@/components/common/MetricCard.jsx';
+import { Pagination } from '@/components/common/Pagination.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
+import { SearchField } from '@/components/common/SearchField.jsx';
+import { StatusBadge } from '@/components/common/StatusBadge.jsx';
+import { TableStateRow } from '@/components/common/TableStateRow.jsx';
+import { Toolbar } from '@/components/common/Toolbar.jsx';
 import { Badge } from '@/components/ui/badge.jsx';
-import { Button } from '@/components/ui/button.jsx';
 import { Card, CardContent } from '@/components/ui/card.jsx';
-import { Input } from '@/components/ui/input.jsx';
 
 import {
   Select,
@@ -26,18 +30,6 @@ import { getProductImageUrl, getProducts, updateProductPrice } from '@/services/
 import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 10;
-
-const statusVariants = {
-  success: 'success',
-  warning: 'warning',
-  muted: 'muted',
-};
-
-const statusDotStyles = {
-  success: 'bg-emerald-500',
-  warning: 'bg-amber-500',
-  muted: 'bg-neutral-300',
-};
 
 function formatPrice(value) {
   return `$${Number(value || 0).toFixed(2)}`;
@@ -68,12 +60,7 @@ function getProductStatus(product) {
 }
 
 function ProductStatus({ tone, label }) {
-  return (
-    <Badge className="gap-2 text-sm normal-case tracking-normal" variant={statusVariants[tone]}>
-      <span className={cn('size-1.5 rounded-full', statusDotStyles[tone])} aria-hidden="true" />
-      {label}
-    </Badge>
-  );
+  return <StatusBadge dot label={label} variant={tone} />;
 }
 
 function ProductImage({ product, size = 'sm' }) {
@@ -242,23 +229,11 @@ export function ProductCatalogBackoffice() {
 
   const renderTableBody = () => {
     if (isLoading) {
-      return (
-        <TableRow>
-          <TableCell className="py-10 text-center text-neutral-500" colSpan={6}>
-            Cargando productos...
-          </TableCell>
-        </TableRow>
-      );
+      return <TableStateRow colSpan={6}>Cargando productos...</TableStateRow>;
     }
 
     if (filteredProducts.length === 0) {
-      return (
-        <TableRow>
-          <TableCell className="py-10 text-center text-neutral-500" colSpan={6}>
-            {emptyProductsMessage}
-          </TableCell>
-        </TableRow>
-      );
+      return <TableStateRow colSpan={6}>{emptyProductsMessage}</TableStateRow>;
     }
 
     return paginatedProducts.map((product) => {
@@ -316,19 +291,23 @@ export function ProductCatalogBackoffice() {
         title="Catálogo de Productos"
       />
 
-      <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-          <label className="relative w-full sm:max-w-sm">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
-            <Input
-              aria-label="Buscar productos..."
-              className="h-11 min-h-11 rounded-none border-neutral-200 bg-white pl-10 text-sm"
-              onChange={handleSearchChange}
-              placeholder="Buscar productos..."
-              type="search"
-              value={searchTerm}
-            />
-          </label>
+      <Toolbar
+        actions={
+          <NavLink
+            className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-xs font-bold uppercase tracking-[0.05em] text-primary-foreground transition-colors hover:bg-[#1c1b1b] sm:w-auto"
+            to="/admin/productos/nuevo"
+          >
+            <Plus className="size-4" strokeWidth={2} aria-hidden="true" />
+            Añadir producto
+          </NavLink>
+        }
+      >
+        <SearchField
+          className="sm:max-w-sm"
+          onChange={handleSearchChange}
+          placeholder="Buscar productos..."
+          value={searchTerm}
+        />
 
 
 
@@ -368,19 +347,7 @@ export function ProductCatalogBackoffice() {
 
 
 
-        </div>
-
-
-
-
-        <NavLink
-          className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-xs font-bold uppercase tracking-[0.05em] text-primary-foreground transition-colors hover:bg-[#1c1b1b] sm:w-auto"
-          to="/admin/productos/nuevo"
-        >
-          <Plus className="size-4" strokeWidth={2} aria-hidden="true" />
-          Añadir producto
-        </NavLink>
-      </section>
+      </Toolbar>
 
       {loadError ? (
         <ErrorState
@@ -411,41 +378,12 @@ export function ProductCatalogBackoffice() {
           <span className="text-sm text-neutral-500">
             Mostrando {firstVisibleItem} a {lastVisibleItem} de {filteredProducts.length} productos
           </span>
-          <div className="flex items-center gap-1">
-            <Button
-              className="size-10 min-h-10 p-0"
-              disabled={currentPage === 1 || isLoading}
-              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-              size="icon"
-              type="button"
-              variant="secondary"
-            >
-              <ChevronLeft className="size-5" strokeWidth={2} aria-hidden="true" />
-            </Button>
-            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-              <Button
-                className="size-10 min-h-10 p-0"
-                disabled={isLoading}
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                size="icon"
-                type="button"
-                variant={currentPage === page ? 'default' : 'secondary'}
-              >
-                {page}
-              </Button>
-            ))}
-            <Button
-              className="size-10 min-h-10 p-0"
-              disabled={currentPage === totalPages || isLoading}
-              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-              size="icon"
-              type="button"
-              variant="secondary"
-            >
-              <ChevronRight className="size-5" strokeWidth={2} aria-hidden="true" />
-            </Button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            disabled={isLoading}
+            onPageChange={setCurrentPage}
+            totalPages={totalPages}
+          />
         </footer>
       </Card>
 
@@ -506,54 +444,19 @@ export function ProductCatalogBackoffice() {
           <span className="text-sm text-neutral-500">
             Mostrando {firstVisibleItem} a {lastVisibleItem} de {filteredProducts.length} productos
           </span>
-          <div className="flex items-center gap-1">
-            <Button
-              className="size-10 min-h-10 p-0"
-              disabled={currentPage === 1 || isLoading}
-              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-              size="icon"
-              type="button"
-              variant="secondary"
-            >
-              <ChevronLeft className="size-5" strokeWidth={2} aria-hidden="true" />
-            </Button>
-            <Button className="size-10 min-h-10 p-0" disabled={isLoading} size="icon" type="button">
-              {currentPage}
-            </Button>
-            <Button
-              className="size-10 min-h-10 p-0"
-              disabled={currentPage === totalPages || isLoading}
-              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-              size="icon"
-              type="button"
-              variant="secondary"
-            >
-              <ChevronRight className="size-5" strokeWidth={2} aria-hidden="true" />
-            </Button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            disabled={isLoading}
+            onPageChange={setCurrentPage}
+            showPageButtons={false}
+            totalPages={totalPages}
+          />
         </footer>
       </section>
 
       <section className="grid gap-6 md:grid-cols-3">
         {stats.map((stat) => (
-          <Card className="rounded-none border-neutral-200 bg-white" key={stat.label}>
-            <CardContent className="p-6">
-              <p className="mb-5 text-xs font-bold uppercase tracking-[0.05em] text-neutral-400">{stat.label}</p>
-              <div className="flex flex-wrap items-baseline gap-2">
-                <span className="text-5xl font-semibold leading-none tracking-normal text-neutral-950">{stat.value}</span>
-                <span
-                  className={cn(
-                    'text-sm font-bold',
-                    stat.tone === 'success' && 'text-emerald-600',
-                    stat.tone === 'warning' && 'text-amber-600',
-                    stat.tone === 'muted' && 'text-neutral-400',
-                  )}
-                >
-                  {stat.meta}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+          <MetricCard helper={stat.meta} key={stat.label} label={stat.label} layout="split" value={stat.value} />
         ))}
       </section>
     </AdminPageContainer>

@@ -14,9 +14,10 @@ import {
   Wallet,
 } from 'lucide-react';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
+import { MetricCard } from '@/components/common/MetricCard.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
+import { StatusBadge } from '@/components/common/StatusBadge.jsx';
 import { Alert } from '@/components/ui/alert.jsx';
-import { Badge } from '@/components/ui/badge.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
@@ -72,29 +73,6 @@ function formatDateTime(value) {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(new Date(value));
-}
-
-function StatusBadge({ meta, fallback }) {
-  const badgeMeta = meta ?? { label: fallback, variant: 'muted' };
-
-  return <Badge variant={badgeMeta.variant}>{badgeMeta.label}</Badge>;
-}
-
-function MetricCard({ helper, icon: Icon, title, value }) {
-  return (
-    <Card className="rounded-none border-neutral-200 bg-white">
-      <CardContent className="flex min-h-[128px] items-center gap-5 p-5 sm:p-6">
-        <div className="grid size-14 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-950">
-          <Icon className="size-6" strokeWidth={2} aria-hidden="true" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-sm font-medium leading-5 text-neutral-500">{title}</p>
-          <p className="mt-1 text-3xl font-semibold leading-none text-neutral-950">{value}</p>
-          <p className="mt-2 text-sm font-medium text-neutral-500">{helper}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 function OperatingStatusCard({ activeOrdersSummary }) {
@@ -429,7 +407,7 @@ export function AdminDashboardPage() {
 
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Métricas del turno">
             {metrics.map((metric) => (
-              <MetricCard key={metric.title} {...metric} />
+              <MetricCard contentClassName="min-h-[128px] p-5 sm:p-6" key={metric.title} {...metric} />
             ))}
           </section>
 

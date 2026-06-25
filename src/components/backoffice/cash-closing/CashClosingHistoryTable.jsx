@@ -1,4 +1,5 @@
 import { Eye, Printer } from 'lucide-react';
+import { Button } from '@/components/ui/button.jsx';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/cashClosing.js';
 
@@ -50,22 +51,26 @@ export function CashClosingHistoryTable({ records, selectedRecordId, onPrintReco
                 <td className="px-4 py-5 text-right text-xl font-semibold leading-none text-neutral-950">{formatCurrency(record.total)}</td>
                 <td className="px-4 py-5">
                   <div className="flex justify-center gap-3">
-                    <button
-                      className="inline-flex min-h-10 items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-neutral-500 transition-colors hover:text-neutral-950"
+                    <Button
+                      className="text-neutral-500 hover:text-neutral-950"
                       onClick={() => onSelectRecord(isSelected ? null : record)}
+                      size="sm"
                       type="button"
+                      variant="ghost"
                     >
                       <Eye className="size-5" aria-hidden="true" />
                       Ver
-                    </button>
-                    <button
-                      className="inline-flex min-h-10 items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-neutral-500 transition-colors hover:text-neutral-950"
+                    </Button>
+                    <Button
+                      className="text-neutral-500 hover:text-neutral-950"
                       onClick={() => onPrintRecord(record)}
+                      size="sm"
                       type="button"
+                      variant="ghost"
                     >
                       <Printer className="size-5" aria-hidden="true" />
                       Imprimir
-                    </button>
+                    </Button>
                   </div>
                 </td>
               </tr>

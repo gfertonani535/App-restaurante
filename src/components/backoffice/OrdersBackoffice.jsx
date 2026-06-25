@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, Printer, Search, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, Printer, X } from 'lucide-react';
 import { OrderModal } from '@/components/backoffice/OrderModal.jsx';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
+import { EmptyState } from '@/components/common/EmptyState.jsx';
+import { ErrorState } from '@/components/common/ErrorState.jsx';
+import { FeedbackMessage } from '@/components/common/FeedbackMessage.jsx';
+import { IconButton } from '@/components/common/IconButton.jsx';
+import { Pagination } from '@/components/common/Pagination.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
+import { SearchField } from '@/components/common/SearchField.jsx';
+import { StatusBadge } from '@/components/common/StatusBadge.jsx';
+import { Toolbar } from '@/components/common/Toolbar.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
 import { getCategories } from '@/services/categories.service.js';
@@ -58,10 +66,10 @@ const paymentMethodLabels = {
   other: 'Otro',
 };
 
-const paymentToneClasses = {
-  danger: 'border-red-200 bg-red-100 text-red-700',
-  success: 'border-green-200 bg-green-100 text-green-700',
-  warning: 'border-yellow-200 bg-yellow-100 text-yellow-700',
+const paymentToneVariants = {
+  danger: 'destructive',
+  success: 'success',
+  warning: 'warning',
 };
 
 const sortOptions = [
@@ -186,32 +194,15 @@ function applyFilter(orders, filterId) {
   return orders;
 }
 
-function IconButton({ label, onClick, disabled = false, children }) {
-  return (
-    <button
-      aria-label={label}
-      className="grid size-10 place-items-center transition-colors hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40"
-      disabled={disabled}
-      onClick={onClick}
-      type="button"
-    >
-      {children}
-    </button>
-  );
-}
-
 function PaymentBadge({ paymentStatus }) {
   const payment = paymentMeta[paymentStatus] ?? paymentMeta.unpaid;
 
   return (
-    <span
-      className={cn(
-        'inline-flex shrink-0 items-center rounded-sm border px-2 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em] sm:px-3 sm:py-2 sm:text-[10px] sm:tracking-[0.18em]',
-        paymentToneClasses[payment.tone],
-      )}
-    >
-      {payment.label}
-    </span>
+    <StatusBadge
+      className="shrink-0 px-2 py-1.5 text-[9px] tracking-[0.14em] sm:px-3 sm:py-2 sm:text-[10px] sm:tracking-[0.18em]"
+      label={payment.label}
+      variant={paymentToneVariants[payment.tone]}
+    />
   );
 }
 
@@ -235,27 +226,25 @@ function OrderStatusControl({ isDisabled = false, isUpdating = false, onChangeSt
 
   return (
     <div className="inline-flex min-h-10 items-center overflow-hidden rounded-full border border-neutral-200 bg-white text-xs font-bold uppercase tracking-[0.08em] text-neutral-950 transition-colors">
-      <button
+      <IconButton
         aria-label={`Volver estado de ${order.orderNumber}`}
-        className="grid size-9 place-items-center transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30"
+        className="size-9 rounded-none hover:bg-neutral-100"
         disabled={!previousStatus || controlsDisabled}
         onClick={() => previousStatus && onChangeStatus(order, previousStatus)}
-        type="button"
       >
         <ChevronLeft className="size-4" aria-hidden="true" />
-      </button>
+      </IconButton>
       <span className="min-w-28 border-x border-neutral-200 px-3 py-2 text-center leading-tight">
         {isUpdating ? 'Actualizando...' : label}
       </span>
-      <button
+      <IconButton
         aria-label={`Avanzar estado de ${order.orderNumber}`}
-        className="grid size-9 place-items-center transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30"
+        className="size-9 rounded-none hover:bg-neutral-100"
         disabled={!nextStatus || controlsDisabled}
         onClick={() => nextStatus && onChangeStatus(order, nextStatus)}
-        type="button"
       >
         <ChevronRight className="size-4" aria-hidden="true" />
-      </button>
+      </IconButton>
     </div>
   );
 }
@@ -273,21 +262,24 @@ function OrderActions({ order, onCharge, onEdit, onPrint, onView }) {
         <Pencil className="size-5" aria-hidden="true" />
       </IconButton>
       {canCharge ? (
-        <button
-          className="min-h-10 rounded-lg bg-neutral-950 px-4 text-xs font-bold uppercase tracking-[0.08em] text-white transition-colors hover:bg-neutral-800"
+        <Button
+          className="min-h-10 rounded-lg px-4"
           onClick={() => onCharge(order)}
+          size="sm"
           type="button"
         >
           Cobrar
-        </button>
+        </Button>
       ) : (
-        <button
-          className="min-h-10 cursor-not-allowed rounded-lg border border-neutral-200 px-4 text-xs font-bold uppercase tracking-[0.08em] text-neutral-400"
+        <Button
+          className="min-h-10 rounded-lg px-4 text-neutral-400"
           disabled
+          size="sm"
           type="button"
+          variant="secondary"
         >
           Pagado
-        </button>
+        </Button>
       )}
       <IconButton label={`Imprimir ${order.orderNumber}`} onClick={() => onPrint(order)}>
         <Printer className="size-5" aria-hidden="true" />
@@ -364,9 +356,9 @@ function OrderDetailsDialog({ order, onClose }) {
             <h2 className="text-lg font-bold">Detalle {order.orderNumber}</h2>
             <p className="text-sm text-neutral-500">{formatTime(order.createdAt)}</p>
           </div>
-          <button className="grid size-10 place-items-center hover:bg-neutral-100" onClick={onClose} type="button" aria-label="Cerrar detalle">
+          <IconButton className="rounded-none" label="Cerrar detalle" onClick={onClose}>
             <X className="size-5" aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
 
         <div className="grid gap-5 overflow-y-auto p-5">
@@ -468,9 +460,9 @@ function PaymentDialog({ isSaving, onClose, onSubmit, order }) {
             <h2 className="text-lg font-bold">Cobrar {order.orderNumber}</h2>
             <p className="text-sm text-neutral-500">Saldo pendiente: {formatMoney(remaining)}</p>
           </div>
-          <button className="grid size-10 place-items-center hover:bg-neutral-100" onClick={onClose} type="button" aria-label="Cerrar pago">
+          <IconButton className="rounded-none" label="Cerrar pago" onClick={onClose}>
             <X className="size-5" aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
 
         <div className="grid gap-4 p-5">
@@ -499,8 +491,8 @@ function PaymentDialog({ isSaving, onClose, onSubmit, order }) {
 
           <label className="grid gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.08em]">Importe</span>
-            <input
-              className="h-11 border border-neutral-200 px-3 outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+            <Input
+              className="h-11 rounded-none border-neutral-200 bg-white px-3"
               disabled={isSaving}
               min="0"
               onChange={(event) => setAmount(event.target.value)}
@@ -512,8 +504,8 @@ function PaymentDialog({ isSaving, onClose, onSubmit, order }) {
 
           <label className="grid gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.08em]">Referencia</span>
-            <input
-              className="h-11 border border-neutral-200 px-3 outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+            <Input
+              className="h-11 rounded-none border-neutral-200 bg-white px-3"
               disabled={isSaving}
               onChange={(event) => setReference(event.target.value)}
               placeholder="Opcional"
@@ -523,8 +515,8 @@ function PaymentDialog({ isSaving, onClose, onSubmit, order }) {
 
           <label className="grid gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.08em]">Notas</span>
-            <input
-              className="h-11 border border-neutral-200 px-3 outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
+            <Input
+              className="h-11 rounded-none border-neutral-200 bg-white px-3"
               disabled={isSaving}
               onChange={(event) => setNotes(event.target.value)}
               placeholder="Opcional"
@@ -536,21 +528,20 @@ function PaymentDialog({ isSaving, onClose, onSubmit, order }) {
         </div>
 
         <footer className="flex justify-end gap-3 border-t border-neutral-200 p-5">
-          <button
-            className="min-h-11 border border-neutral-200 bg-white px-5 text-xs font-bold uppercase tracking-[0.06em] hover:border-neutral-950"
+          <Button
             disabled={isSaving}
             onClick={onClose}
             type="button"
+            variant="secondary"
           >
             Cancelar
-          </button>
-          <button
-            className="min-h-11 bg-neutral-950 px-5 text-xs font-bold uppercase tracking-[0.06em] text-white hover:bg-neutral-800 disabled:opacity-40"
+          </Button>
+          <Button
             disabled={isSaving || remaining <= 0}
             type="submit"
           >
             {isSaving ? 'Registrando...' : 'Registrar pago'}
-          </button>
+          </Button>
         </footer>
       </form>
     </div>
@@ -816,33 +807,24 @@ export function OrdersBackoffice() {
     <AdminPageContainer>
       <PageHeader title="Órdenes Activas" />
 
-      <section className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <label className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" aria-hidden="true" />
-          <Input
-            aria-label="Buscar por mesa, orden o cliente..."
-            className="h-11 min-h-11 rounded-none border-neutral-200 bg-white pl-10 text-sm"
-            onChange={handleSearchChange}
-            placeholder="Buscar por mesa, orden o cliente..."
-            type="search"
-            value={searchTerm}
-          />
-        </label>
-        <Button className="w-full min-h-9 sm:w-auto" onClick={handleNewOrder} type="button">
-          <Plus className="size-4 " strokeWidth={2} aria-hidden="true" />
-          Nueva orden
-        </Button>
-      </section>
-
-      {feedback ? <p className="border border-green-200 bg-green-50 p-3 text-sm font-semibold text-green-700">{feedback}</p> : null}
-      {error ? (
-        <div className="flex flex-col gap-3 border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-semibold">{error}</p>
-          <Button onClick={loadData} size="sm" type="button" variant="secondary">
-            Reintentar
+      <Toolbar
+        actions={
+          <Button className="w-full min-h-9 sm:w-auto" onClick={handleNewOrder} type="button">
+            <Plus className="size-4 " strokeWidth={2} aria-hidden="true" />
+            Nueva orden
           </Button>
-        </div>
-      ) : null}
+        }
+      >
+        <SearchField
+          className="sm:max-w-md"
+          onChange={handleSearchChange}
+          placeholder="Buscar por mesa, orden o cliente..."
+          value={searchTerm}
+        />
+      </Toolbar>
+
+      <FeedbackMessage variant="success">{feedback}</FeedbackMessage>
+      {error ? <ErrorState title={error} onRetry={loadData} /> : null}
 
       <section className="flex flex-col justify-between gap-6 border-b border-neutral-100 pb-2 md:flex-row md:items-end">
         <div className="flex gap-1 overflow-x-auto pb-1">
@@ -896,14 +878,11 @@ export function OrdersBackoffice() {
       ) : null}
 
       {!isLoading && visibleOrders.length === 0 ? (
-        <div className="grid min-h-56 place-items-center border border-dashed border-neutral-200 bg-white p-6 text-center">
-          <div>
-            <p className="text-lg font-bold text-neutral-950">
-              {hasSearchOrFilter ? 'No encontramos órdenes con esos criterios.' : 'Todavía no hay órdenes.'}
-            </p>
-            <p className="mt-2 text-sm text-neutral-500">Los datos se cargan directamente desde Supabase.</p>
-          </div>
-        </div>
+        <EmptyState
+          className="grid min-h-56 place-items-center border-dashed text-center"
+          title={hasSearchOrFilter ? 'No encontramos órdenes con esos criterios.' : 'Todavía no hay órdenes.'}
+          description="Los datos se cargan directamente desde Supabase."
+        />
       ) : null}
 
       {!isLoading && visibleOrders.length > 0 ? (
@@ -1001,41 +980,7 @@ export function OrdersBackoffice() {
       ) : null}
 
       <footer className="flex flex-col gap-4 border-t border-neutral-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
-          <button
-            className="grid size-12 place-items-center border border-neutral-200 text-neutral-400 disabled:cursor-not-allowed disabled:opacity-40"
-            disabled={currentPage <= 1}
-            onClick={() => setPage((currentValue) => Math.max(1, currentValue - 1))}
-            type="button"
-          >
-            <ChevronLeft className="size-5" aria-hidden="true" />
-          </button>
-          {Array.from({ length: totalPages }).slice(0, 5).map((_, index) => {
-            const pageNumber = index + 1;
-
-            return (
-              <button
-                className={cn(
-                  'grid size-12 place-items-center border border-neutral-200 font-bold transition-colors hover:bg-neutral-50',
-                  currentPage === pageNumber && 'bg-neutral-950 text-white hover:bg-neutral-950',
-                )}
-                key={pageNumber}
-                onClick={() => setPage(pageNumber)}
-                type="button"
-              >
-                {pageNumber}
-              </button>
-            );
-          })}
-          <button
-            className="grid size-12 place-items-center border border-neutral-200 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
-            disabled={currentPage >= totalPages}
-            onClick={() => setPage((currentValue) => Math.min(totalPages, currentValue + 1))}
-            type="button"
-          >
-            <ChevronRight className="size-5" aria-hidden="true" />
-          </button>
-        </div>
+        <Pagination currentPage={currentPage} onPageChange={setPage} totalPages={totalPages} />
         <select
           className="h-10 border border-neutral-200 bg-white px-3 text-base outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
           onChange={handlePageSizeChange}
@@ -1073,4 +1018,3 @@ export function OrdersBackoffice() {
     </AdminPageContainer>
   );
 }
-

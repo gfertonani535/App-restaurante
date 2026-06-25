@@ -6,6 +6,10 @@ import { CashClosingModal } from '@/components/backoffice/cash-closing/CashClosi
 import { CashSummaryCards } from '@/components/backoffice/cash-closing/CashSummaryCards.jsx';
 import { LatestTransactionsTable } from '@/components/backoffice/cash-closing/LatestTransactionsTable.jsx';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
+import { ErrorState } from '@/components/common/ErrorState.jsx';
+import { FeedbackMessage } from '@/components/common/FeedbackMessage.jsx';
+import { IconButton } from '@/components/common/IconButton.jsx';
+import { LoadingState } from '@/components/common/LoadingState.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import {
@@ -113,9 +117,9 @@ function TransactionsDialog({ transactions, onClose }) {
       <div className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl flex-col overflow-hidden border border-neutral-300 bg-white">
         <header className="flex min-h-16 items-center justify-between border-b border-neutral-300 px-5">
           <h2 className="text-xl font-semibold text-neutral-950">Transacciones pendientes</h2>
-          <button className="grid size-10 place-items-center hover:bg-neutral-100" onClick={onClose} type="button" aria-label="Cerrar">
+          <IconButton className="rounded-none" label="Cerrar" onClick={onClose}>
             <X className="size-5" aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
         <div className="overflow-y-auto p-5">
           <div className="overflow-x-auto border border-neutral-200">
@@ -158,9 +162,9 @@ function ClosureResultDialog({ record, onClose, onPrint }) {
       <div className="w-full max-w-lg border border-neutral-300 bg-white">
         <header className="flex min-h-16 items-center justify-between border-b border-neutral-300 px-5">
           <h2 className="text-xl font-semibold text-neutral-950">Caja cerrada correctamente</h2>
-          <button className="grid size-10 place-items-center hover:bg-neutral-100" onClick={onClose} type="button" aria-label="Cerrar">
+          <IconButton className="rounded-none" label="Cerrar" onClick={onClose}>
             <X className="size-5" aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
         <div className="grid gap-3 p-5 text-sm">
           <div className="flex justify-between"><span>Cierre</span><strong>#{record.closureNumber}</strong></div>
@@ -175,12 +179,12 @@ function ClosureResultDialog({ record, onClose, onPrint }) {
           {record.notes ? <p className="border-t border-neutral-200 pt-3 text-neutral-600">Notas: {record.notes}</p> : null}
         </div>
         <footer className="flex justify-end gap-3 border-t border-neutral-300 p-5">
-          <button className="border border-neutral-300 px-5 py-3 text-xs font-bold uppercase tracking-[0.08em]" onClick={() => onPrint(record)} type="button">
+          <Button onClick={() => onPrint(record)} type="button" variant="secondary">
             Imprimir cierre
-          </button>
-          <button className="bg-neutral-950 px-5 py-3 text-xs font-bold uppercase tracking-[0.08em] text-white" onClick={onClose} type="button">
+          </Button>
+          <Button onClick={onClose} type="button">
             Cerrar
-          </button>
+          </Button>
         </footer>
       </div>
     </div>
@@ -397,16 +401,9 @@ export function CashClosurePage() {
         title="Cierre de Caja"
       />
 
-      {isLoading ? <p className="border border-neutral-200 bg-white p-4 text-sm text-neutral-500">Cargando resumen de caja...</p> : null}
-      {error ? (
-        <div className="flex flex-col gap-3 border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-semibold">{error}</p>
-          <Button onClick={loadCashClosureData} size="sm" type="button" variant="secondary">
-            Reintentar
-          </Button>
-        </div>
-      ) : null}
-      {successMessage ? <p className="border border-green-200 bg-green-50 p-3 text-sm font-semibold text-green-700">{successMessage}</p> : null}
+      {isLoading ? <LoadingState message="Cargando resumen de caja..." /> : null}
+      {error ? <ErrorState title={error} onRetry={loadCashClosureData} /> : null}
+      <FeedbackMessage variant="success">{successMessage}</FeedbackMessage>
 
       <CashSummaryCards summary={summary} />
 
@@ -433,29 +430,32 @@ export function CashClosurePage() {
           </div>
           <div className="relative z-10 mt-8 flex flex-wrap gap-3">
             {!summary.canClose && summary.blockingOrdersCount > 0 ? (
-              <button
-                className="border border-white/25 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] transition-colors hover:bg-white hover:text-neutral-950"
+              <Button
+                className="border-white/25 bg-transparent text-white hover:bg-white hover:text-neutral-950"
                 onClick={() => navigate('/admin/pedidos')}
                 type="button"
+                variant="secondary"
               >
                 Ver órdenes pendientes
-              </button>
+              </Button>
             ) : null}
-            <button
-              className="border border-white/25 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] transition-colors hover:bg-white hover:text-neutral-950"
+            <Button
+              className="border-white/25 bg-transparent text-white hover:bg-white hover:text-neutral-950"
               onClick={handleOpenHistoryModal}
               type="button"
+              variant="secondary"
             >
               Ver Registro Histórico
-            </button>
-            <button
-              className="border border-white/25 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] transition-colors hover:bg-white hover:text-neutral-950 disabled:cursor-not-allowed disabled:opacity-40"
+            </Button>
+            <Button
+              className="border-white/25 bg-transparent text-white hover:bg-white hover:text-neutral-950"
               disabled={!canClose || isSaving}
               onClick={() => setIsClosingModalOpen(true)}
               type="button"
+              variant="secondary"
             >
               Cerrar caja
-            </button>
+            </Button>
           </div>
           <div className="absolute -bottom-20 -right-20 size-72 border-[34px] border-white/5" aria-hidden="true" />
           <div className="absolute right-36 top-10 size-14 rotate-45 border-4 border-white/5" aria-hidden="true" />
@@ -469,14 +469,15 @@ export function CashClosurePage() {
           <p className="mt-3 max-w-xs text-sm leading-6 text-neutral-500">
             {latestClosure ? `Último cierre disponible: #${latestClosure.closureNumber}` : 'Todavía no hay un cierre para imprimir.'}
           </p>
-          <button
-            className="mt-8 w-full min-h-11 border border-neutral-300 bg-white px-5 text-xs font-bold uppercase tracking-[0.12em] transition-colors hover:border-neutral-950 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+          <Button
+            className="mt-8 w-full"
             disabled={!latestClosure}
             onClick={() => handlePrintClosure(latestClosure)}
             type="button"
+            variant="secondary"
           >
             Imprimir Cierre
-          </button>
+          </Button>
         </article>
       </section>
 

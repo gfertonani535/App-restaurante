@@ -2,9 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, DollarSign, Save, Trash2, Upload } from 'lucide-react';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
+import { FieldError } from '@/components/common/FieldError.jsx';
+import { FormField } from '@/components/common/FormField.jsx';
+import { FormSection } from '@/components/common/FormSection.jsx';
+import { SwitchField } from '@/components/common/SwitchField.jsx';
 import { Alert } from '@/components/ui/alert.jsx';
 import { Button } from '@/components/ui/button.jsx';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx';
 import { Input } from '@/components/ui/input.jsx';
 import { Label } from '@/components/ui/label.jsx';
 import { Separator } from '@/components/ui/separator.jsx';
@@ -20,7 +23,6 @@ import {
   uploadProductImage,
   validateProductImage,
 } from '@/services/products.service.js';
-import { cn } from '@/lib/utils';
 
 const emptyProductForm = {
   category_id: '',
@@ -56,36 +58,6 @@ function getInitialForm(product) {
     track_stock: Boolean(product.track_stock),
     stock: String(product.stock ?? 0),
   };
-}
-
-function FieldError({ children }) {
-  if (!children) {
-    return null;
-  }
-
-  return <p className="text-xs font-medium leading-5 text-red-700">{children}</p>;
-}
-
-function FormField({ children, className, error, label }) {
-  return (
-    <div className={cn('grid gap-1.5', className)}>
-      <Label>{label}</Label>
-      {children}
-      <FieldError>{error}</FieldError>
-    </div>
-  );
-}
-
-function SwitchRow({ checked, description, disabled, label, onCheckedChange }) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-2">
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-neutral-950">{label}</p>
-        {description ? <p className="mt-1 text-xs leading-5 text-neutral-500">{description}</p> : null}
-      </div>
-      <Switch checked={checked} disabled={disabled} onClick={() => onCheckedChange(!checked)} />
-    </div>
-  );
 }
 
 export function ProductEditPage() {
@@ -391,11 +363,7 @@ export function ProductEditPage() {
 
         <div className="grid gap-6 items-start xl:grid-cols-[minmax(0,1fr)_380px]">
           <div className="grid gap-6">
-            <Card className="rounded-none border-neutral-200 bg-white">
-              <CardHeader className="min-h-11 border-neutral-200 px-4 py-3">
-                <CardTitle>Información principal</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3 p-4">
+            <FormSection title="Información principal" contentClassName="grid gap-3 p-4">
                 <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_280px]">
                   <FormField error={errors.name} label="Nombre del producto">
                     <Input
@@ -462,14 +430,9 @@ export function ProductEditPage() {
                     value={form.description}
                   />  
                 </FormField>
-              </CardContent>
-            </Card>
+            </FormSection>
 
-            <Card className="rounded-none border-neutral-200 bg-white">
-              <CardHeader className="min-h-11 border-neutral-200 px-4 py-3">
-                <CardTitle>Inventario simple</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 p-4">
+            <FormSection title="Inventario simple">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
                   <Label className="min-w-36">Controlar stock</Label>
                   <div className="flex items-center gap-3">
@@ -493,16 +456,11 @@ export function ProductEditPage() {
                     </p>
                   </div>
                 </FormField>
-              </CardContent>
-            </Card>
+            </FormSection>
           </div>
 
           <aside className="grid h-max gap-4">
-            <Card className="rounded-none border-neutral-200 bg-white">
-              <CardHeader className="min-h-11 border-neutral-200 px-4 py-3">
-                <CardTitle>Imagen del producto</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 p-5 sm:p-6">
+            <FormSection title="Imagen del producto" contentClassName="grid gap-4 p-5 sm:p-6">
                 {/* <div className="aspect-[4/3] overflow-hidden border border-neutral-200 bg-neutral-100"> */}
                 <div className="h-44 overflow-hidden border border-neutral-200 bg-neutral-100 sm:h-48 xl:h-52">
                   {imageSrc ? (
@@ -549,36 +507,30 @@ export function ProductEditPage() {
                   <br />
                   Tamaño recomendado: 800x800px. Máx. 2MB.
                 </p>
-              </CardContent>
-            </Card>
+            </FormSection>
 
-            <Card className="rounded-none border-neutral-200 bg-white">
-              <CardHeader className="min-h-11 border-neutral-200 px-4 py-3">
-                <CardTitle>Configuración del producto</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <SwitchRow
+            <FormSection title="Configuración del producto" contentClassName="p-4">
+                <SwitchField
                   checked={form.is_active}
                   disabled={isSaving}
                   label="Producto activo"
                   onCheckedChange={(value) => updateField('is_active', value)}
                 />
                 <Separator />
-                <SwitchRow
+                <SwitchField
                   checked={form.visible_in_menu}
                   disabled={isSaving}
                   label="Visible en carta digital"
                   onCheckedChange={(value) => updateField('visible_in_menu', value)}
                 />
                 <Separator />
-                <SwitchRow
+                <SwitchField
                   checked={form.quick_access}
                   disabled={isSaving}
                   label="Acceso rápido"
                   onCheckedChange={(value) => updateField('quick_access', value)}
                 />
-              </CardContent>
-            </Card>
+            </FormSection>
           </aside>
         </div>
       </AdminPageContainer>
