@@ -25,7 +25,10 @@ function createOrderItem(product, quantity = 1) {
 }
 
 function formatMoney(value) {
-  return `$${value.toFixed(2)}`;
+  return `$${Number(value || 0).toLocaleString('es-AR', {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  })}`;
 }
 
 export function OrderModal({ mode, order, products, categories, isSaving = false, onClose, onSave }) {

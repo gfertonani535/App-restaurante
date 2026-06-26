@@ -7,11 +7,10 @@ import { resolveProductImage } from '@/utils/productImageResolver.js';
 import { cn } from '@/lib/utils.js';
 
 function formatPrice(price) {
-  if (typeof price === 'number') {
-    return `$${price.toFixed(2)}`;
-  }
-
-  return price ?? '';
+  return `$${Number(price || 0).toLocaleString('es-AR', {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  })}`;
 }
 
 // Bottom sheet mobile con transición y drag hacia abajo para aplicar interacciones de Unidad 6.

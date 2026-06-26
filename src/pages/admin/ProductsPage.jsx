@@ -31,7 +31,10 @@ import { cn } from '@/lib/utils';
 const PAGE_SIZE = 10;
 
 function formatPrice(value) {
-  return `$${Number(value || 0).toFixed(2)}`;
+  return `$${Number(value || 0).toLocaleString('es-AR', {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  })}`;
 }
 
 function normalizeText(value) {
@@ -40,10 +43,6 @@ function normalizeText(value) {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim();
-}
-
-function getProductSku(product) {
-  return product.sku || '-';
 }
 
 function getCategoryLabel(product) {
@@ -137,7 +136,7 @@ export function ProductsPage() {
     return products.filter((product) => {
       const matchesCategory = categoryFilter === 'all' || product.category_id === categoryFilter;
       const searchableText = normalizeText(
-        `${product.name} ${getCategoryLabel(product)} ${product.short_description ?? ''} ${product.description ?? ''} ${getProductSku(product)}`,
+        `${product.name} ${getCategoryLabel(product)} ${product.short_description ?? ''} ${product.description ?? ''} ${product.sku ?? ''}`,
       );
       const matchesSearch = !normalizedSearch || searchableText.includes(normalizedSearch);
 
@@ -171,7 +170,7 @@ export function ProductsPage() {
 
   function handleStartEditPrice(product) {
     setEditingPriceProductId(product.id);
-    setDraftPrice(Number(product.price || 0).toFixed(2));
+    setDraftPrice(String(Math.round(Number(product.price || 0))));
     setPriceError('');
   }
 
@@ -245,7 +244,6 @@ export function ProductsPage() {
           </TableCell>
           <TableCell>
             <div className="text-base font-bold text-neutral-950">{product.name}</div>
-            <div className="text-xs font-medium text-neutral-400">SKU: {getProductSku(product)}</div>
           </TableCell>
           <TableCell>
             <Badge variant="secondary">{getCategoryLabel(product)}</Badge>
@@ -270,7 +268,7 @@ export function ProductsPage() {
           <TableCell>
             <ProductStatus label={status.label} tone={status.tone} />
           </TableCell>
-          <TableCell className="text-right">
+          <TableCell className="text-center">
             <NavLink
               className="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-xs font-bold uppercase leading-none tracking-[0.05em] text-primary transition-colors hover:border-primary"
               to={`/admin/productos/${product.id}/editar`}
@@ -284,7 +282,7 @@ export function ProductsPage() {
   };
 
   return (
-    <AdminPageContainer className="space-y-6 min-h-250">
+    <AdminPageContainer className="space-y-6 min-h-220">
       <PageHeader
         description="Gestioná los productos visibles en el menú digital."
         secondaryActions={
@@ -349,7 +347,7 @@ export function ProductsPage() {
         />
       ) : null}
 
-      <Card className="hidden overflow-hidden rounded-none border-neutral-200 bg-white lg:block">
+      <Card className="hidden mt-8 overflow-hidden rounded-none border-neutral-200 bg-white lg:block">
         <div className="overflow-x-auto">
           <Table className="min-w-[980px]">
             <TableHeader>
@@ -359,7 +357,7 @@ export function ProductsPage() {
                 <TableHead>Categoría</TableHead>
                 <TableHead>Precio</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>{renderTableBody()}</TableBody>
@@ -395,7 +393,6 @@ export function ProductsPage() {
                       <ProductImage product={product} size="lg" />
                       <div className="min-w-0 flex-1">
                         <h2 className="text-base font-bold leading-tight text-neutral-950">{product.name}</h2>
-                        <p className="mt-1 text-xs font-medium text-neutral-400">SKU: {getProductSku(product)}</p>
                         <div className="mt-3 flex flex-wrap items-center gap-2">
                           <Badge variant="secondary">{getCategoryLabel(product)}</Badge>
                           <ProductStatus label={status.label} tone={status.tone} />

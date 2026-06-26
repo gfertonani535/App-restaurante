@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarDays, Download, Filter, X } from 'lucide-react';
+import { CalendarDays, Download, X } from 'lucide-react';
 import { CashClosingHistoryTable } from '@/components/backoffice/cash-closing/CashClosingHistoryTable.jsx';
 import { IconButton } from '@/components/common/IconButton.jsx';
 import { Button } from '@/components/ui/button.jsx';
@@ -97,14 +97,6 @@ export function CashClosingHistoryModal({
               />
               <CalendarDays className="absolute right-4 top-1/2 size-5 -translate-y-1/2 text-neutral-500" aria-hidden="true" />
             </label>
-
-            <Button
-              type="button"
-              variant="secondary"
-            >
-              <Filter className="size-4" aria-hidden="true" />
-              Filtros
-            </Button>
           </div>
 
           <CashClosingHistoryTable

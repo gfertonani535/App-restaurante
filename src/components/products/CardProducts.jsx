@@ -13,11 +13,10 @@ const productIcons = {
 };
 
 function formatPrice(price) {
-  if (typeof price === 'number') {
-    return `$${price.toFixed(2)}`;
-  }
-
-  return price ?? '';
+  return `$${Number(price || 0).toLocaleString('es-AR', {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  })}`;
 }
 
 export function CardProducts({ onSelect, product }) {

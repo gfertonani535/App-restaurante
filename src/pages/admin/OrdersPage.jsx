@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, Printer, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, Filter, Pencil, Plus, Printer, X } from 'lucide-react';
 import { OrderModal } from '@/components/backoffice/OrderModal.jsx';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
 import { EmptyState } from '@/components/common/EmptyState.jsx';
@@ -12,6 +12,7 @@ import { SearchField } from '@/components/common/SearchField.jsx';
 import { StatusBadge } from '@/components/common/StatusBadge.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select.jsx';
 import { getCategories } from '@/services/categories.service.js';
 import { getProducts } from '@/services/products.service.js';
 import {
@@ -24,12 +25,11 @@ import {
   updateOrder,
   updateOrderStatus,
 } from '@/services/orders.service.js';
-import { cn } from '@/lib/utils';
 
 const filterDefinitions = [
   { id: 'all', label: 'Todas' },
   { id: 'open', label: 'Pendientes' },
-  { id: 'preparing', label: 'En preparación' },
+  { id: 'preparing', label: 'Preparando' },
   { id: 'ready', label: 'Listas' },
   { id: 'paid', label: 'Pagadas' },
 ];
@@ -51,7 +51,7 @@ const paymentMeta = {
 
 const orderStatusMeta = {
   open: 'Pendiente',
-  preparing: 'En preparación',
+  preparing: 'Preparando',
   ready: 'Lista',
   served: 'Servida',
   closed: 'Cerrada',
@@ -90,8 +90,10 @@ function normalizeText(value = '') {
 
 function formatMoney(value) {
   return new Intl.NumberFormat('en-US', {
-    style: 'currency',
     currency: 'USD',
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+    style: 'currency',
   }).format(Number(value ?? 0));
 }
 
@@ -102,6 +104,7 @@ function formatTime(value) {
 
   return new Intl.DateTimeFormat('es-AR', {
     hour: '2-digit',
+    hour12: false,
     minute: '2-digit',
   }).format(new Date(value));
 }
@@ -188,10 +191,10 @@ function SortableTableHeader({ label, onSort, sortDirection, sortKey, value }) {
   return (
     <th
       aria-sort={isActive ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
-      className="px-4 py-4 text-xs font-bold uppercase tracking-[0.18em] text-neutral-950"
+      className="px-4 py-4 text-sm text-center font-bold  text-neutral-950"
     >
       <button
-        className="inline-flex items-center gap-1 text-left transition-colors hover:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="inline-flex items-center gap-1 text-center transition-colors hover:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onClick={() => onSort(value)}
         type="button"
       >
@@ -262,8 +265,8 @@ function OrderStatusControl({ isDisabled = false, isUpdating = false, onChangeSt
       >
         <ChevronLeft className="size-4" aria-hidden="true" />
       </IconButton>
-      <span className="min-w-28 border-x border-neutral-200 px-3 py-2 text-center leading-tight">
-        {isUpdating ? 'Actualizando...' : label}
+      <span className="min-w-28 border-x border-neutral-200 px-3 py-2 y-10 text-center leading-tight">
+        {isUpdating ? '' : label}
       </span>
       <IconButton
         aria-label={`Avanzar estado de ${order.orderNumber}`}
@@ -279,14 +282,19 @@ function OrderStatusControl({ isDisabled = false, isUpdating = false, onChangeSt
 
 function OrderActions({ order, onCharge, onEdit, onPrint, onView }) {
   const canCharge = order.paymentStatus !== 'paid' && !['closed', 'cancelled'].includes(order.status);
-  const canEdit = !['closed', 'cancelled'].includes(order.status);
+  const canEdit = order.paymentStatus !== 'paid' && !['closed', 'cancelled'].includes(order.status);
 
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2">
       <IconButton label={`Ver detalle de ${order.orderNumber}`} onClick={() => onView(order)}>
         <Eye className="size-5" aria-hidden="true" />
       </IconButton>
-      <IconButton disabled={!canEdit} label={`Editar ${order.orderNumber}`} onClick={() => onEdit(order)}>
+      <IconButton
+        disabled={!canEdit}
+        label={`Editar ${order.orderNumber}`}
+        onClick={() => onEdit(order)}
+        title={canEdit ? undefined : 'Las órdenes pagadas no se pueden editar'}
+      >
         <Pencil className="size-5" aria-hidden="true" />
       </IconButton>
       {canCharge ? (
@@ -322,7 +330,6 @@ function OrderMobileCard({ isStatusControlDisabled = false, isUpdatingStatus, on
       <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:justify-between">
         <div className="min-w-0">
           <p className="text-lg font-bold leading-none text-neutral-950">{order.orderNumber}</p>
-          <p className="mt-2 text-[10px] font-medium uppercase text-neutral-400">{order.type}</p>
         </div>
         <PaymentBadge paymentStatus={order.paymentStatus} />
       </div>
@@ -448,7 +455,7 @@ function PaymentDialog({ isSaving, onClose, onSubmit, order }) {
   const remaining = calculateOrderRemainingTotal(order);
   const paidTotal = calculateOrderPaidTotal(order);
   const [method, setMethod] = useState('cash');
-  const [amount, setAmount] = useState(() => remaining.toFixed(2));
+  const [amount, setAmount] = useState(() => String(Math.round(remaining)));
   const [reference, setReference] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
@@ -524,7 +531,7 @@ function PaymentDialog({ isSaving, onClose, onSubmit, order }) {
               disabled={isSaving}
               min="0"
               onChange={(event) => setAmount(event.target.value)}
-              step="0.01"
+              step="1"
               type="number"
               value={amount}
             />
@@ -697,6 +704,11 @@ export function OrdersPage() {
   }, []);
 
   const handleEditOrder = useCallback((order) => {
+    if (order.paymentStatus === 'paid') {
+      setError('Las órdenes pagadas no se pueden editar.');
+      return;
+    }
+
     setModalMode('edit');
     setSelectedOrder(order);
     setIsOrderModalOpen(true);
@@ -743,7 +755,6 @@ export function OrdersPage() {
 
         await loadData();
         handleCloseOrderModal();
-        setFeedback(modalMode === 'edit' ? 'Orden actualizada correctamente.' : 'Orden creada correctamente.');
       } catch (saveError) {
         setError(saveError.message || 'No se pudo guardar la orden.');
       } finally {
@@ -832,17 +843,38 @@ export function OrdersPage() {
   }
 
   return (
-    <AdminPageContainer>
+    <AdminPageContainer className="min-h-220">
       <PageHeader
         title="Órdenes Activas"
+        description="Listado de órdenes activas. Cree, edite y cobre órdenes"
         secondaryActions={
-          <SearchField
-            className="w-full sm:w-[320px]"
-            inputClassName="rounded-md"
-            onChange={handleSearchChange}
-            placeholder="Buscar por mesa, orden o cliente..."
-            value={searchTerm}
-          />
+          <>
+            <SearchField
+              className="w-full sm:w-[320px]"
+              inputClassName="rounded-md"
+              onChange={handleSearchChange}
+              placeholder="Buscar por mesa, orden o cliente..."
+              value={searchTerm}
+            />
+            <Select disabled={isLoading} onValueChange={handleFilterChange} value={activeFilter}>
+              <SelectTrigger
+                aria-label="Filtrar órdenes por estado"
+                className="h-10 w-full rounded-md border border-neutral-200 bg-white px-3 text-xs font-bold uppercase tracking-[0.05em] text-primary shadow-none outline-none sm:w-[190px]"
+              >
+                <div className="flex items-center gap-2">
+                  <Filter className="size-4 shrink-0" strokeWidth={2} aria-hidden="true" />
+                  <SelectValue placeholder="Todas" />
+                </div>
+              </SelectTrigger>
+              <SelectContent align="start">
+                {filterDefinitions.map((filter) => (
+                  <SelectItem className="text-xs font-bold uppercase" key={filter.id} value={filter.id}>
+                    {filter.label} ({filterCounts[filter.id] ?? 0})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
         }
         primaryAction={
           <Button className="w-full min-h-9 sm:w-auto" onClick={handleNewOrder} type="button">
@@ -854,26 +886,6 @@ export function OrdersPage() {
 
       <FeedbackMessage variant="success">{feedback}</FeedbackMessage>
       {error ? <ErrorState title={error} onRetry={loadData} /> : null}
-
-      <section className="flex flex-col justify-between gap-6 border-b border-neutral-100 pb-2 md:flex-row md:items-end">
-        <div className="flex gap-1 overflow-x-auto pb-1">
-          {filterDefinitions.map((filter) => (
-            <button
-              className={cn(
-                'whitespace-nowrap px-5 py-3 text-base transition-colors',
-                activeFilter === filter.id
-                  ? 'border-b-2 border-primary font-bold text-primary'
-                  : 'font-medium text-neutral-400 hover:text-neutral-950',
-              )}
-              key={filter.id}
-              onClick={() => handleFilterChange(filter.id)}
-              type="button"
-            >
-              {filter.label} ({filterCounts[filter.id] ?? 0})
-            </button>
-          ))}
-        </div>
-      </section>
 
       {isLoading ? (
         <div className="grid gap-3">
@@ -894,7 +906,7 @@ export function OrdersPage() {
       {!isLoading && visibleOrders.length > 0 ? (
         <>
           <section className="hidden overflow-x-auto lg:block">
-            <table className="w-full min-w-[1080px] border-collapse text-left">
+            <table className="w-full min-w-[1080px] border-collapse text-center [&_td:not(:last-child)]:border-r [&_td:not(:last-child)]:border-neutral-200 [&_th:not(:last-child)]:border-r [&_th:not(:last-child)]:border-neutral-200">
               <thead className="border-b-2 border-neutral-950">
                 <tr>
                   {tableSortColumns.map((column) => (
@@ -907,19 +919,18 @@ export function OrdersPage() {
                       value={column.id}
                     />
                   ))}
-                  <th className="px-4 py-4 text-right text-xs font-bold uppercase tracking-[0.18em] text-neutral-950">Acciones</th>
+                  <th className="px-4 py-4 text-center text-sm font-bold text-neutral-950">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody>
                 {paginatedOrders.map((order) => (
-                  <tr className="transition-colors hover:bg-neutral-50" key={order.id}>
-                    <td className="px-4 py-6">
+                  <tr className="transition-colors last:border-b-0 hover:bg-neutral-50" key={order.id}>
+                    <td className="px-4 py-4">
                       <div className="flex flex-col">
                         <span className="text-base font-bold text-neutral-950">{order.orderNumber}</span>
-                        <span className="text-[10px] font-medium uppercase text-neutral-400">{order.type}</span>
                       </div>
                     </td>
-                    {/* <td className="px-4 py-6">
+                    {/* <td className="px-4 py-4">
                       {order.tableOrLocation === '-' ? (
                         <span className="text-base text-neutral-400">—</span>
                       ) : (
@@ -928,19 +939,19 @@ export function OrdersPage() {
                         </span>
                       )}
                     </td> */}
-                    <td className="px-4 py-6">
+                    <td className="px-4 py-4">
                       <div className="flex flex-col">
                         <span className="text-sm font-semibold text-neutral-950">{order.customerOrWaiter}</span>
                         <span className="text-sm text-neutral-400">{order.waiterLabel}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-6">
+                    <td className="px-4 py-4">
                       <div className="max-w-[220px] truncate text-sm text-neutral-600">{getProductsSummary(order)}</div>
                     </td>
-                    <td className="px-4 py-6">
+                    <td className="px-4 py-4">
                       <span className="text-base font-bold text-neutral-950">{formatMoney(order.total)}</span>
                     </td>
-                    <td className="px-4 py-6">
+                    <td className="px-4 py-4">
                       <OrderStatusControl
                         isDisabled={Boolean(updatingStatusOrderId) && updatingStatusOrderId !== order.id}
                         isUpdating={updatingStatusOrderId === order.id}
@@ -948,11 +959,11 @@ export function OrdersPage() {
                         order={order}
                       />
                     </td>
-                    <td className="px-4 py-6">
+                    <td className="px-4 py-4">
                       <PaymentBadge paymentStatus={order.paymentStatus} />
                     </td>
-                    <td className="px-4 py-6 text-sm text-neutral-500">{formatTime(order.createdAt)}</td>
-                    <td className="px-4 py-6">
+                    <td className="px-4 py-4 text-sm text-neutral-500">{formatTime(order.createdAt)}</td>
+                    <td className="px-4 py-4">
                       <div className="flex items-center justify-end gap-2">
                         <OrderActions
                           order={order}

@@ -1,7 +1,7 @@
 export function formatCurrency(value) {
   return `$${Number(value).toLocaleString('es-AR', {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 0,
   })}`;
 }
 

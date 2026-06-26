@@ -46,7 +46,7 @@ function getInitialForm(product) {
     category_id: product.category_id ?? '',
     name: product.name ?? '',
     short_description: product.short_description ?? '',
-    price: String(Number(product.price ?? 0).toFixed(2)),
+    price: String(Math.round(Number(product.price ?? 0))),
     description: product.description ?? '',
     image_path: product.image_path ?? '',
     imageFile: null,
@@ -413,7 +413,7 @@ export function ProductEditPage() {
                         disabled={isSaving}
                         min="0"
                         onChange={(event) => updateField('price', event.target.value)}
-                        step="0.01"
+                        step="1"
                         type="number"
                         value={form.price}
                       />

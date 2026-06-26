@@ -16,8 +16,8 @@ export function PriceInlineEditor({
 }) {
   if (!isEditing) {
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-xl font-semibold leading-none tracking-normal text-neutral-950">{value}</span>
+      <div className="flex items-center justify-center gap-2">
+        <span className="text-lg font-semibold leading-none tracking-normal text-neutral-950">{value}</span>
         <Button
           aria-label={`Editar precio ${value}`}
           className="size-9 p-0"
@@ -34,11 +34,11 @@ export function PriceInlineEditor({
   }
 
   return (
-    <div className="grid max-w-[220px] gap-2">
+    <div className="grid max-w-0 gap-2">
       <div className="flex items-center gap-2">
         <Input
           aria-label="Nuevo precio"
-          className="h-10 min-h-10 w-24 px-3 text-base font-semibold"
+          className="h-10 min-h-10 w-24 px-3 text-lg font-semibold"
           disabled={disabled}
           min="0"
           onChange={(event) => onDraftChange(event.target.value)}
@@ -51,7 +51,7 @@ export function PriceInlineEditor({
               onCancel();
             }
           }}
-          step="0.01"
+          step="500"
           type="number"
           value={draftValue}
         />

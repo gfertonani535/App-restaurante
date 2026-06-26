@@ -162,7 +162,7 @@ function CategoryFormPanel({
   return (
     <Card className="rounded-none border-neutral-200 bg-white shadow-none lg:shadow-[0_16px_50px_rgba(15,15,15,0.06)]">
       <CardHeader className="flex-row items-center justify-between border-neutral-200 px-5 sm:px-6">
-        <CardTitle>{isEditMode ? 'Editar categoría' : 'Nueva categoría'}</CardTitle>
+        <CardTitle>{isEditMode ? 'Editar categoría' : 'Añadir categoría'}</CardTitle>
         <IconButton
           className="size-9 rounded-none hover:bg-neutral-50"
           disabled={isSaving}
@@ -605,7 +605,7 @@ export function CategoriesPage() {
         primaryAction={
           <Button className="w-full sm:w-auto" disabled={isLoading} onClick={handleNewCategory} size="sm" type="button">
             <Plus className="size-4" aria-hidden="true" />
-            Nueva categoría
+            Añadir categoría
           </Button>
         }
       />
