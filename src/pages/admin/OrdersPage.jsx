@@ -13,6 +13,7 @@ import { StatusBadge } from '@/components/common/StatusBadge.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select.jsx';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
 import { getCategories } from '@/services/categories.service.js';
 import { getProducts } from '@/services/products.service.js';
 import {
@@ -81,6 +82,11 @@ const tableSortColumns = [
   { id: 'paymentStatus', label: 'Pago' },
   { id: 'createdAt', label: 'Hora' },
 ];
+
+const ordersTableClassName =
+  'min-w-[1080px] [&_td:not(:last-child)]:border-r [&_td:not(:last-child)]:border-neutral-200 [&_th:not(:last-child)]:border-r [&_th:not(:last-child)]:border-neutral-200';
+const ordersTableHeadClassName = 'px-4 py-4 text-center text-sm font-bold text-neutral-950';
+const ordersTableCellClassName = 'px-4 py-4';
 
 function normalizeText(value = '') {
   return String(value)
@@ -169,19 +175,20 @@ function SortableTableHeader({ label, onSort, sortDirection, sortKey, value }) {
   const isActive = sortKey === value;
 
   return (
-    <th
+    <TableHead
       aria-sort={isActive ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
-      className="px-4 py-4 text-sm text-center font-bold  text-neutral-950"
+      className={ordersTableHeadClassName}
     >
       <button
         className="inline-flex items-center gap-1 text-center transition-colors hover:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label={`Ordenar por ${label}`}
         onClick={() => onSort(value)}
         type="button"
       >
         {label}
         {isActive ? <span className="text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span> : null}
       </button>
-    </th>
+    </TableHead>
   );
 }
 
@@ -886,9 +893,9 @@ export function OrdersPage() {
       {!isLoading && visibleOrders.length > 0 ? (
         <>
           <section className="hidden overflow-x-auto lg:block">
-            <table className="w-full min-w-[1080px] border-collapse text-center [&_td:not(:last-child)]:border-r [&_td:not(:last-child)]:border-neutral-200 [&_th:not(:last-child)]:border-r [&_th:not(:last-child)]:border-neutral-200">
-              <thead className="border-b-2 border-neutral-950">
-                <tr>
+            <Table className={ordersTableClassName}>
+              <TableHeader className="border-b-2 border-neutral-950">
+                <TableRow className="hover:bg-transparent">
                   {tableSortColumns.map((column) => (
                     <SortableTableHeader
                       key={column.id}
@@ -899,51 +906,44 @@ export function OrdersPage() {
                       value={column.id}
                     />
                   ))}
-                  <th className="px-4 py-4 text-center text-sm font-bold text-neutral-950">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
+                  <TableHead className={ordersTableHeadClassName}>Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {paginatedOrders.map((order) => (
-                  <tr className="transition-colors last:border-b-0 hover:bg-neutral-50" key={order.id}>
-                    <td className="px-4 py-4">
+                  <TableRow className="transition-colors last:border-b-0 hover:bg-neutral-50" key={order.id}>
+                    <TableCell className={ordersTableCellClassName}>
                       <div className="flex flex-col">
                         <span className="text-base font-bold text-neutral-950">{order.orderNumber}</span>
                       </div>
-                    </td>
-                    {/* <td className="px-4 py-4">
-                      {order.tableOrLocation === '-' ? (
-                        <span className="text-base text-neutral-400">—</span>
-                      ) : (
-                        <span className="rounded-md border border-neutral-200 bg-neutral-100 px-2 py-1 text-sm font-bold">
-                          {order.tableOrLocation}
-                        </span>
-                      )}
-                    </td> */}
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className={ordersTableCellClassName}>
                       <div className="flex flex-col">
                         <span className="text-sm font-semibold text-neutral-950">{order.customerOrWaiter}</span>
                         <span className="text-sm text-neutral-400">{order.waiterLabel}</span>
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className={ordersTableCellClassName}>
                       <div className="max-w-[220px] truncate text-sm text-neutral-600">{getProductsSummary(order)}</div>
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className={ordersTableCellClassName}>
                       <span className="text-base font-bold text-neutral-950">{formatCurrency(order.total)}</span>
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className={ordersTableCellClassName}>
                       <OrderStatusControl
                         isDisabled={Boolean(updatingStatusOrderId) && updatingStatusOrderId !== order.id}
                         isUpdating={updatingStatusOrderId === order.id}
                         onChangeStatus={handleChangeOrderStatus}
                         order={order}
                       />
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className={ordersTableCellClassName}>
                       <PaymentBadge paymentStatus={order.paymentStatus} />
-                    </td>
-                    <td className="px-4 py-4 text-sm text-neutral-500">{formatTime(order.createdAt)}</td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell className={`${ordersTableCellClassName} text-sm text-neutral-500`}>
+                      {formatTime(order.createdAt)}
+                    </TableCell>
+                    <TableCell className={ordersTableCellClassName}>
                       <div className="flex items-center justify-end gap-2">
                         <OrderActions
                           order={order}
@@ -953,11 +953,11 @@ export function OrdersPage() {
                           onView={setDetailOrder}
                         />
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </section>
 
           <section className="grid gap-4 lg:hidden" aria-label="Listado de órdenes">
