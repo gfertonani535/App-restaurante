@@ -7,11 +7,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-[#1c1b1b]',
-        secondary: 'border-border bg-card text-primary hover:border-primary',
+        secondary: 'border-border border-neutral-200  bg-card text-primary hover:border-primary',
         ghost: 'bg-transparent px-2 text-primary hover:bg-muted',
       },
       size: {
-        default: 'h-11min-h-9 px-6',
+        default: 'h-11min-h-9 px-4',
         sm: 'min-h-9 px-4',
         icon: 'size-11 px-0',
       },

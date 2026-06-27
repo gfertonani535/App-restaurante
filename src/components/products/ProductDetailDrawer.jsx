@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ImageIcon, X } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { resolveProductImage } from '@/utils/productImageResolver.js';
@@ -148,17 +148,7 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
           onPointerUp={handleDragEnd}
         >
           <div className="mx-auto mb-2 h-1 w-12 rounded-full bg-neutral-300" aria-hidden="true" />
-          <Button
-            aria-label="Cerrar detalle del producto"
-            className="absolute hidden right-3 top-3 size-10 min-h-10 p-0 lg:inline-flex"
-            onClick={handleCloseDrawer}
-            onPointerDown={(event) => event.stopPropagation()}
-            size="icon"
-            type="button"
-            variant="ghost"
-          >
-            <X className="size-5" strokeWidth={2} aria-hidden="true" />
-          </Button>
+          
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5 pt-4 sm:px-6 sm:pb-6">

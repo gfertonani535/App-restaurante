@@ -394,7 +394,7 @@ export function CashClosurePage() {
           </Button>
         }
         secondaryActions={
-          <Button onClick={handleOpenHistoryModal} size="sm" type="button" variant="secondary">
+          <Button className={"h-10"} onClick={handleOpenHistoryModal} size="sm" type="button" variant="secondary">
             Ver registro histórico
           </Button>
         }

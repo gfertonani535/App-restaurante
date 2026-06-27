@@ -329,7 +329,7 @@ export function ProductsPage() {
         }
         primaryAction={
           <NavLink
-            className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-xs font-bold uppercase tracking-[0.05em] text-primary-foreground transition-colors hover:bg-[#1c1b1b] sm:w-auto"
+            className="inline-flex min-h-9 w-full sm:w-auto items-center justify-center gap-2 rounded-md bg-primary px-4 text-xs font-bold uppercase tracking-[0.05em] text-primary-foreground transition-colors hover:bg-[#1c1b1b]"
             to="/admin/productos/nuevo"
           >
             <Plus className="size-4" strokeWidth={2} aria-hidden="true" />

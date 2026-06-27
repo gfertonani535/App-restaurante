@@ -586,25 +586,28 @@ export function CategoriesPage() {
   return (
     <AdminPageContainer>
       <PageHeader
-        title="Categorías"
+        title="Catálogo de Categorías"
         description="Organizá las secciones visibles en la carta digital."
         searchValue={searchTerm}
         onSearchChange={(event) => setSearchTerm(event.target.value)}
         secondaryActions={
+          <>
           <Button
+            className="h-10"
             disabled={isLoading}
             onClick={() => setSortDirection((currentDirection) => (currentDirection === 'asc' ? 'desc' : 'asc'))}
             size="sm"
             type="button"
             variant="secondary"
           >
-            {sortDirection === 'asc' ? <ChevronUp className="size-4" aria-hidden="true" /> : <ChevronDown className="size-4" aria-hidden="true" />}
+            {sortDirection === 'asc' ? <ChevronUp className="size-4 h-9" aria-hidden="true" /> : <ChevronDown className="size-4 h-9" aria-hidden="true" />}
             Ordenar
           </Button>
+          </>
         }
         primaryAction={
           <Button className="w-full sm:w-auto" disabled={isLoading} onClick={handleNewCategory} size="sm" type="button">
-            <Plus className="size-4" aria-hidden="true" />
+            <Plus className="size-4" strokeWidth={2} aria-hidden="true" />
             Añadir categoría
           </Button>
         }
