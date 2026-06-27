@@ -22,6 +22,7 @@ import {
   getPendingClosurePayments,
 } from '@/services/cashClosures.service.js';
 import { exportRowsAsCsv, formatCurrency } from '@/lib/cashClosing.js';
+import { formatDateTime, formatTime } from '@/utils/formatters.js';
 
 const emptySummary = {
   ordersCount: 0,
@@ -48,28 +49,6 @@ const transactionColumns = [
   { key: 'method', label: 'Medio' },
   { key: 'amount', label: 'Monto', align: 'right' },
 ];
-
-function formatDateTime(value) {
-  if (!value) {
-    return '—';
-  }
-
-  return new Intl.DateTimeFormat('es-AR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(new Date(value));
-}
-
-function formatTime(value) {
-  if (!value) {
-    return '—';
-  }
-
-  return new Intl.DateTimeFormat('es-AR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
-}
 
 function printClosure(record) {
   if (!record) {

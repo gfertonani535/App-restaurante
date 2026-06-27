@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.j
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
 import { getDashboardSummary } from '@/services/dashboard.service.js';
 import { cn } from '@/lib/utils';
-import { formatCurrency } from '@/utils/formatters.js';
+import { formatCurrency, formatDateTime, formatTime } from '@/utils/formatters.js';
 
 const orderStatusMeta = {
   open: { label: 'Pendiente', variant: 'warning' },
@@ -46,28 +46,6 @@ const paymentMethodLabels = {
   transfer: 'Transferencia',
   other: 'Otro',
 };
-
-function formatTime(value) {
-  if (!value) {
-    return '-';
-  }
-
-  return new Intl.DateTimeFormat('es-AR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
-}
-
-function formatDateTime(value) {
-  if (!value) {
-    return '-';
-  }
-
-  return new Intl.DateTimeFormat('es-AR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(new Date(value));
-}
 
 function OperatingStatusCard({ activeOrdersSummary }) {
   const items = [

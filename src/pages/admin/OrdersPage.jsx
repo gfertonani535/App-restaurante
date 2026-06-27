@@ -25,7 +25,7 @@ import {
   updateOrder,
   updateOrderStatus,
 } from '@/services/orders.service.js';
-import { formatCurrency } from '@/utils/formatters.js';
+import { formatCurrency, formatTime } from '@/utils/formatters.js';
 
 const filterDefinitions = [
   { id: 'all', label: 'Todas' },
@@ -87,18 +87,6 @@ function normalizeText(value = '') {
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
     .toLowerCase();
-}
-
-function formatTime(value) {
-  if (!value) {
-    return '—';
-  }
-
-  return new Intl.DateTimeFormat('es-AR', {
-    hour: '2-digit',
-    hour12: false,
-    minute: '2-digit',
-  }).format(new Date(value));
 }
 
 function getProductsSummary(order) {
@@ -291,7 +279,7 @@ function OrderActions({ order, onCharge, onEdit, onPrint, onView }) {
       </IconButton>
       {canCharge ? (
         <Button
-          className="min-h-10 rounded-lg px-4"
+          className="rounded-lg px-4"
           onClick={() => onCharge(order)}
           size="sm"
           type="button"
@@ -869,7 +857,7 @@ export function OrdersPage() {
           </>
         }
         primaryAction={
-          <Button className="w-full min-h-9 sm:w-auto" onClick={handleNewOrder} type="button">
+          <Button className="w-full sm:w-auto" onClick={handleNewOrder} size="sm" type="button">
             <Plus className="size-4 " strokeWidth={2} aria-hidden="true" />
             Nueva orden
           </Button>
