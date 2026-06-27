@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FormField } from '@/components/common/FormField.jsx';
+import { Button } from '@/components/ui/button.jsx';
+import { Input } from '@/components/ui/input.jsx';
 import { supabase } from '@/lib/supabase.js';
 
 export function LoginPage() {
@@ -25,9 +28,10 @@ export function LoginPage() {
     setLoading(false);
     if (signInError) {
       setError('Credenciales incorrectas. Intentá de nuevo.');
-    } else {
-      navigate('/admin/dashboard');
+      return;
     }
+
+    navigate('/admin/dashboard');
   }
 
   return (
@@ -38,48 +42,38 @@ export function LoginPage() {
           <p className="mt-1 text-sm text-neutral-500">Iniciá sesión para continuar</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-neutral-700" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <FormField htmlFor="email" label="Email">
+            <Input
               autoComplete="email"
-              value={email}
+              className="rounded-lg border-neutral-200 px-3 py-2 text-sm focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
+              id="email"
               onChange={(event) => setEmail(event.target.value)}
-              className="rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none transition-colors focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
               placeholder="admin@restaurante.com"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-neutral-700" htmlFor="password">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              type="password"
               required
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none transition-colors focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
-              placeholder="••••••••"
+              type="email"
+              value={email}
             />
-          </div>
+          </FormField>
+
+          <FormField htmlFor="password" label="Contraseña">
+            <Input
+              autoComplete="current-password"
+              className="rounded-lg border-neutral-200 px-3 py-2 text-sm focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
+              id="password"
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="••••••••"
+              required
+              type="password"
+              value={password}
+            />
+          </FormField>
 
           {error ? <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p> : null}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
-          >
+          <Button className="mt-2 rounded-lg px-4 py-2.5 text-sm font-semibold" disabled={loading} type="submit">
             {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

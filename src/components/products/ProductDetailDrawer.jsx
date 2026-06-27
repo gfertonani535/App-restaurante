@@ -1,17 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { resolveProductImage } from '@/utils/productImageResolver.js';
+import { formatCurrency } from '@/utils/formatters.js';
 import { cn } from '@/lib/utils.js';
-
-function formatPrice(price) {
-  return `$${Number(price || 0).toLocaleString('es-AR', {
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0,
-  })}`;
-}
 
 // Bottom sheet mobile con transición y drag hacia abajo para aplicar interacciones de Unidad 6.
 export function ProductDetailDrawer({ isOpen, onClose, product }) {
@@ -180,7 +174,7 @@ export function ProductDetailDrawer({ isOpen, onClose, product }) {
                 </Badge>
               ) : null}
             </div>
-            <p className="shrink-0 pt-1 text-xl font-bold leading-none text-neutral-950 sm:text-2xl">{formatPrice(product.price)}</p>
+            <p className="shrink-0 pt-1 text-xl font-bold leading-none text-neutral-950 sm:text-2xl">{formatCurrency(product.price)}</p>
           </div>
 
           {shortDescription ? (

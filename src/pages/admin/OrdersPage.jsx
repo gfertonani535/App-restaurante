@@ -25,6 +25,7 @@ import {
   updateOrder,
   updateOrderStatus,
 } from '@/services/orders.service.js';
+import { formatCurrency } from '@/utils/formatters.js';
 
 const filterDefinitions = [
   { id: 'all', label: 'Todas' },
@@ -86,15 +87,6 @@ function normalizeText(value = '') {
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
     .toLowerCase();
-}
-
-function formatMoney(value) {
-  return new Intl.NumberFormat('en-US', {
-    currency: 'USD',
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0,
-    style: 'currency',
-  }).format(Number(value ?? 0));
 }
 
 function formatTime(value) {
@@ -370,7 +362,7 @@ function OrderMobileCard({ isStatusControlDisabled = false, isUpdatingStatus, on
       <div className="mt-4 flex flex-col gap-4 border-t border-neutral-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-400">Total</p>
-          <p className="mt-1 text-xl font-bold leading-none text-neutral-950">{formatMoney(order.total)}</p>
+          <p className="mt-1 text-xl font-bold leading-none text-neutral-950">{formatCurrency(order.total)}</p>
         </div>
         <OrderActions order={order} onCharge={onCharge} onEdit={onEdit} onPrint={onPrint} onView={onView} />
       </div>
@@ -415,7 +407,7 @@ function OrderDetailsDialog({ order, onClose }) {
                     <p className="font-bold">{item.quantity}x {item.name}</p>
                     <p className="text-sm text-neutral-500">{item.notes || 'Sin notas de item'}</p>
                   </div>
-                  <p className="font-bold">{formatMoney(item.subtotal)}</p>
+                  <p className="font-bold">{formatCurrency(item.subtotal)}</p>
                 </div>
               ))}
             </div>
@@ -433,7 +425,7 @@ function OrderDetailsDialog({ order, onClose }) {
                       <p className="font-bold">{paymentMethodLabels[payment.method] ?? payment.method}</p>
                       <p className="text-sm text-neutral-500">{payment.reference || payment.notes || 'Sin referencia'}</p>
                     </div>
-                    <p className="font-bold">{formatMoney(payment.amount)}</p>
+                    <p className="font-bold">{formatCurrency(payment.amount)}</p>
                   </div>
                 ))}
               </div>
@@ -441,9 +433,9 @@ function OrderDetailsDialog({ order, onClose }) {
           </section>
 
           <section className="ml-auto grid w-full max-w-sm gap-2 border border-neutral-200 p-4 text-sm">
-            <div className="flex justify-between"><span>Subtotal</span><strong>{formatMoney(order.subtotal)}</strong></div>
-            <div className="flex justify-between"><span>Descuento</span><strong>{formatMoney(order.discount)}</strong></div>
-            <div className="flex justify-between text-lg"><span>Total</span><strong>{formatMoney(order.total)}</strong></div>
+            <div className="flex justify-between"><span>Subtotal</span><strong>{formatCurrency(order.subtotal)}</strong></div>
+            <div className="flex justify-between"><span>Descuento</span><strong>{formatCurrency(order.discount)}</strong></div>
+            <div className="flex justify-between text-lg"><span>Total</span><strong>{formatCurrency(order.total)}</strong></div>
           </section>
         </div>
       </div>
@@ -493,7 +485,7 @@ function PaymentDialog({ isSaving, onClose, onSubmit, order }) {
         <header className="flex min-h-16 items-center justify-between border-b border-neutral-200 px-5">
           <div>
             <h2 className="text-lg font-bold">Cobrar {order.orderNumber}</h2>
-            <p className="text-sm text-neutral-500">Saldo pendiente: {formatMoney(remaining)}</p>
+            <p className="text-sm text-neutral-500">Saldo pendiente: {formatCurrency(remaining)}</p>
           </div>
           <IconButton className="rounded-none" label="Cerrar pago" onClick={onClose}>
             <X className="size-5" aria-hidden="true" />
@@ -503,11 +495,11 @@ function PaymentDialog({ isSaving, onClose, onSubmit, order }) {
         <div className="grid gap-4 p-5">
           <div className="grid grid-cols-2 gap-3 border border-neutral-200 p-4 text-sm">
             <p>Total</p>
-            <p className="text-right font-bold">{formatMoney(order.total)}</p>
+            <p className="text-right font-bold">{formatCurrency(order.total)}</p>
             <p>Pagado</p>
-            <p className="text-right font-bold">{formatMoney(paidTotal)}</p>
+            <p className="text-right font-bold">{formatCurrency(paidTotal)}</p>
             <p>Pendiente</p>
-            <p className="text-right font-bold">{formatMoney(remaining)}</p>
+            <p className="text-right font-bold">{formatCurrency(remaining)}</p>
           </div>
 
           <label className="grid gap-2">
@@ -830,10 +822,10 @@ export function OrdersPage() {
           <table>
             <thead><tr><th>Producto</th><th>Cant.</th><th>Total</th></tr></thead>
             <tbody>
-              ${order.items.map((item) => `<tr><td>${item.name}</td><td>${item.quantity}</td><td>${formatMoney(item.subtotal)}</td></tr>`).join('')}
+              ${order.items.map((item) => `<tr><td>${item.name}</td><td>${item.quantity}</td><td>${formatCurrency(item.subtotal)}</td></tr>`).join('')}
             </tbody>
           </table>
-          <p class="total">Total: ${formatMoney(order.total)}</p>
+          <p class="total">Total: ${formatCurrency(order.total)}</p>
         </body>
       </html>
     `);
@@ -949,7 +941,7 @@ export function OrdersPage() {
                       <div className="max-w-[220px] truncate text-sm text-neutral-600">{getProductsSummary(order)}</div>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-base font-bold text-neutral-950">{formatMoney(order.total)}</span>
+                      <span className="text-base font-bold text-neutral-950">{formatCurrency(order.total)}</span>
                     </td>
                     <td className="px-4 py-4">
                       <OrderStatusControl

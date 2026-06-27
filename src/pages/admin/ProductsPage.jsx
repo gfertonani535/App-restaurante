@@ -27,15 +27,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getCategories } from '@/services/categories.service.js';
 import { getProductImageUrl, getProducts, updateProductPrice } from '@/services/products.service.js';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatters.js';
 
 const PAGE_SIZE = 10;
-
-function formatPrice(value) {
-  return `$${Number(value || 0).toLocaleString('es-AR', {
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0,
-  })}`;
-}
 
 function normalizeText(value) {
   return String(value ?? '')
@@ -163,7 +157,7 @@ export function ProductsPage() {
 
   const stats = [
     { label: 'Total productos', value: String(products.length), meta: `Máximo ${PAGE_SIZE} por página`, tone: 'success' },
-    { label: 'Precio promedio', value: formatPrice(averagePrice), meta: 'Calculado desde Supabase', tone: 'muted' },
+    { label: 'Precio promedio', value: formatCurrency(averagePrice), meta: 'Calculado desde Supabase', tone: 'muted' },
     { label: 'Productos activos', value: String(activeProducts).padStart(2, '0'), meta: `${visibleProducts} visibles`, tone: 'warning' },
   ];
   const emptyProductsMessage = products.length === 0 ? 'Todavía no hay productos.' : 'No encontramos productos para tu búsqueda.';
@@ -262,7 +256,7 @@ export function ProductsPage() {
               onSave={handleSavePrice}
               onStartEdit={() => handleStartEditPrice(product)}
               productId={product.id}
-              value={formatPrice(product.price)}
+              value={formatCurrency(product.price)}
             />
           </TableCell>
           <TableCell>
@@ -414,7 +408,7 @@ export function ProductsPage() {
                         onSave={handleSavePrice}
                         onStartEdit={() => handleStartEditPrice(product)}
                         productId={product.id}
-                        value={formatPrice(product.price)}
+                        value={formatCurrency(product.price)}
                       />
                       <NavLink
                         className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-md border border-border bg-card px-4 text-xs font-bold uppercase leading-none tracking-[0.05em] text-primary transition-colors hover:border-primary sm:w-auto"

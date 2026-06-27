@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.j
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
 import { getDashboardSummary } from '@/services/dashboard.service.js';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatters.js';
 
 const orderStatusMeta = {
   open: { label: 'Pendiente', variant: 'warning' },
@@ -45,13 +46,6 @@ const paymentMethodLabels = {
   transfer: 'Transferencia',
   other: 'Otro',
 };
-
-function formatCurrency(value) {
-  return `$${Number(value || 0).toLocaleString('es-AR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })}`;
-}
 
 function formatTime(value) {
   if (!value) {

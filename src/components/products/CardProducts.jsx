@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Croissant, Hamburger, IceCream, ImageIcon, Pizza, Sandwich, Utensils } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { resolveProductImage } from '@/utils/productImageResolver.js';
+import { formatCurrency } from '@/utils/formatters.js';
 
 const productIcons = {
   burger: Hamburger,
@@ -11,13 +12,6 @@ const productIcons = {
   sandwich: Sandwich,
   utensils: Utensils,
 };
-
-function formatPrice(price) {
-  return `$${Number(price || 0).toLocaleString('es-AR', {
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0,
-  })}`;
-}
 
 export function CardProducts({ onSelect, product }) {
   const Icon = productIcons[product.icon] ?? Utensils;
@@ -78,7 +72,7 @@ export function CardProducts({ onSelect, product }) {
             {product.shortDescription ?? product.description}
           </p>
           <div className="mb-0 mt-auto flex justify-end">
-            <span className="text-xl font-bold leading-none tracking-normal text-primary">{formatPrice(product.price)}</span>
+            <span className="text-xl font-bold leading-none tracking-normal text-primary">{formatCurrency(product.price)}</span>
           </div>
         </div>
       </button>

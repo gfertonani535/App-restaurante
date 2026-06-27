@@ -5,6 +5,7 @@ import { SearchField } from '@/components/common/SearchField.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/formatters.js';
 
 const paymentMethods = [
   { id: 'cash', label: 'Efectivo', icon: Banknote },
@@ -22,13 +23,6 @@ function createOrderItem(product, quantity = 1) {
     unitPrice: product.price,
     subtotal: product.price * quantity,
   };
-}
-
-function formatMoney(value) {
-  return `$${Number(value || 0).toLocaleString('es-AR', {
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0,
-  })}`;
 }
 
 export function OrderModal({ mode, order, products, categories, isSaving = false, onClose, onSave }) {
@@ -169,7 +163,7 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
               {product.name}
             </h4>
 
-            <span className="mt-4 text-sm font-bold">{formatMoney(product.price)}</span>
+            <span className="mt-4 text-sm font-bold">{formatCurrency(product.price)}</span>
           </button>
         ))}
       </div>
@@ -266,7 +260,7 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
                           </h4>
                           <p className="mt-1 text-xs leading-5 text-neutral-500">{item.shortDescription}</p>
                         </div>
-                        <span className="text-sm font-bold">{formatMoney(item.subtotal)}</span>
+                        <span className="text-sm font-bold">{formatCurrency(item.subtotal)}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center overflow-hidden rounded-full border border-neutral-200">
@@ -308,7 +302,7 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
             <div className="border-t border-neutral-200 p-4 sm:p-5">
               <div className="mb-5 text-left sm:text-right">
                 <p className="text-[10px] font-bold uppercase tracking-[0.08em]">Total a pagar</p>
-                <p className="mt-1 text-4xl font-bold leading-none">{formatMoney(total)}</p>
+                <p className="mt-1 text-4xl font-bold leading-none">{formatCurrency(total)}</p>
               </div>
             </div>
           </section>

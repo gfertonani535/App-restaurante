@@ -12,6 +12,7 @@ import { IconButton } from '@/components/common/IconButton.jsx';
 import { LoadingState } from '@/components/common/LoadingState.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { Button } from '@/components/ui/button.jsx';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
 import {
   closeCashRegister,
   getCashClosureOrders,
@@ -40,6 +41,13 @@ const paymentMethodLabels = {
   transfer: 'Transferencia',
   other: 'Otro',
 };
+
+const transactionColumns = [
+  { key: 'paidAt', label: 'Hora' },
+  { key: 'order', label: 'Mesa / Orden' },
+  { key: 'method', label: 'Medio' },
+  { key: 'amount', label: 'Monto', align: 'right' },
+];
 
 function formatDateTime(value) {
   if (!value) {
@@ -123,28 +131,32 @@ function TransactionsDialog({ transactions, onClose }) {
         </header>
         <div className="overflow-y-auto p-5">
           <div className="overflow-x-auto border border-neutral-200">
-            <table className="w-full min-w-[720px] text-left">
-              <thead className="bg-neutral-50">
-                <tr>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.08em] text-neutral-500">Hora</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.08em] text-neutral-500">Mesa / Orden</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-[0.08em] text-neutral-500">Medio</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-[0.08em] text-neutral-500">Monto</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
+            <Table className="min-w-[720px] text-left">
+              <TableHeader className="bg-neutral-50">
+                <TableRow className="hover:bg-transparent">
+                  {transactionColumns.map((column) => (
+                    <TableHead
+                      className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.08em] text-neutral-500 ${column.align === 'right' ? 'text-right' : ''}`}
+                      key={column.key}
+                    >
+                      {column.label}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-neutral-100">
                 {transactions.map((transaction) => (
-                  <tr key={transaction.id}>
-                    <td className="px-4 py-4 text-sm">{formatTime(transaction.paidAt)}</td>
-                    <td className="px-4 py-4 text-sm">
+                  <TableRow key={transaction.id}>
+                    <TableCell className="px-4 py-4 text-left text-sm">{formatTime(transaction.paidAt)}</TableCell>
+                    <TableCell className="px-4 py-4 text-left text-sm">
                       {transaction.order?.tableLabel || `Orden #${transaction.order?.orderNumber ?? '—'}`}
-                    </td>
-                    <td className="px-4 py-4 text-sm">{paymentMethodLabels[transaction.method] ?? transaction.method}</td>
-                    <td className="px-4 py-4 text-right font-bold">{formatCurrency(transaction.amount)}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-left text-sm">{paymentMethodLabels[transaction.method] ?? transaction.method}</TableCell>
+                    <TableCell className="px-4 py-4 text-right font-bold">{formatCurrency(transaction.amount)}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
       </div>

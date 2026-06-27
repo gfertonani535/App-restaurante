@@ -1,9 +1,4 @@
-export function formatCurrency(value) {
-  return `$${Number(value).toLocaleString('es-AR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })}`;
-}
+export { formatCurrency } from '@/utils/formatters.js';
 
 export function getPercentageOfTotal(value, total) {
   if (!total) {
