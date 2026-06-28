@@ -2,45 +2,30 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BarChart3,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   ChevronUp,
-  ImageIcon,
   Package,
   Plus,
   Tag,
-  X,
 } from 'lucide-react';
+import { CategoriesTable } from '@/components/categories/CategoriesTable.jsx';
+import { CategoryFormPanel } from '@/components/categories/CategoryFormPanel.jsx';
+import { CategoryMobileList } from '@/components/categories/CategoryMobileList.jsx';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
-import { EmptyState } from '@/components/common/EmptyState.jsx';
 import { ErrorState } from '@/components/common/ErrorState.jsx';
-import { FieldError } from '@/components/common/FieldError.jsx';
-import { FormField } from '@/components/common/FormField.jsx';
-import { IconButton } from '@/components/common/IconButton.jsx';
-import { LoadingState } from '@/components/common/LoadingState.jsx';
 import { MetricCard } from '@/components/common/MetricCard.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
-import { StatusBadge } from '@/components/common/StatusBadge.jsx';
-import { SwitchField } from '@/components/common/SwitchField.jsx';
-import { TableStateRow } from '@/components/common/TableStateRow.jsx';
 import { Alert } from '@/components/ui/alert.jsx';
 import { Button } from '@/components/ui/button.jsx';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx';
-import { Input } from '@/components/ui/input.jsx';
-import { Label } from '@/components/ui/label.jsx';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
 import {
   createCategory,
   createCategoryId,
   deleteCategoryImage,
   getCategories,
-  getCategoryImageUrl,
   getCategoryProductStats,
   updateCategory,
   uploadCategoryImage,
   validateCategoryImage,
 } from '@/services/categories.service.js';
-import { cn } from '@/lib/utils';
 
 const emptyForm = {
   name: '',
@@ -73,173 +58,6 @@ function getNextOrder(categories) {
 
 function getProductCount(categoryId, productCounts) {
   return productCounts[categoryId] ?? 0;
-}
-
-function CategoryStatus({ isActive }) {
-  return <StatusBadge dot label={isActive ? 'Activa' : 'Inactiva'} variant={isActive ? 'success' : 'muted'} />;
-}
-
-function CategoryThumbnail({ imagePath, name, previewUrl = '', size = 'sm' }) {
-  const imageSrc = previewUrl || getCategoryImageUrl(imagePath);
-
-  return (
-    <div
-      className={cn(
-        'grid shrink-0 place-items-center overflow-hidden border border-neutral-200 bg-neutral-100 text-neutral-400',
-        size === 'lg' ? 'size-24' : 'size-12',
-      )}
-    >
-      {imageSrc ? (
-        <img className="size-full object-cover" src={imageSrc} alt={`Foto de ${name || 'categoría'}`} />
-      ) : (
-        <ImageIcon className={cn(size === 'lg' ? 'size-9' : 'size-5')} strokeWidth={1.8} aria-hidden="true" />
-      )}
-    </div>
-  );
-}
-
-function CategoryImageInput({ disabled, error, form, onSelectFile }) {
-  const inputRef = useRef(null);
-  const imageSrc = form.imagePreviewUrl || getCategoryImageUrl(form.imagePath);
-
-  function handleFileChange(event) {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    const validationError = validateCategoryImage(file);
-
-    if (validationError) {
-      onSelectFile(null, validationError);
-      event.target.value = '';
-      return;
-    }
-
-    onSelectFile(file, '');
-    event.target.value = '';
-  }
-
-  return (
-    <div className="grid gap-2">
-      <Label>Foto de la categoría</Label>
-      <button
-        className="flex min-h-24 w-full items-center gap-4 border border-dashed border-neutral-300 bg-white p-4 text-left transition-colors hover:border-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
-        disabled={disabled}
-        onClick={() => inputRef.current?.click()}
-        type="button"
-      >
-        <CategoryThumbnail imagePath={form.imagePath} name={form.name} previewUrl={form.imagePreviewUrl} size="lg" />
-        <span>
-          <span className="block text-sm font-bold text-neutral-950">{imageSrc ? 'Cambiar foto' : 'Agregar foto'}</span>
-          <span className="mt-1 block text-xs leading-5 text-neutral-500">JPG, PNG o WebP. Máx. 2 MB</span>
-        </span>
-      </button>
-      <input
-        accept="image/jpeg,image/png,image/webp"
-        className="hidden"
-        disabled={disabled}
-        onChange={handleFileChange}
-        ref={inputRef}
-        type="file"
-      />
-      <FieldError>{error}</FieldError>
-    </div>
-  );
-}
-
-function CategoryFormPanel({
-  errors,
-  form,
-  isEditMode,
-  isSaving,
-  onCancel,
-  onChange,
-  onImageChange,
-  onSubmit,
-}) {
-  return (
-    <Card className="rounded-none border-neutral-200 bg-white shadow-none lg:shadow-[0_16px_50px_rgba(15,15,15,0.06)]">
-      <CardHeader className="flex-row items-center justify-between border-neutral-200 px-5 sm:px-6">
-        <CardTitle>{isEditMode ? 'Editar categoría' : 'Añadir categoría'}</CardTitle>
-        <IconButton
-          className="size-9 rounded-none hover:bg-neutral-50"
-          disabled={isSaving}
-          label="Cerrar formulario de categoría"
-          onClick={onCancel}
-        >
-          <X className="size-5" aria-hidden="true" />
-        </IconButton>
-      </CardHeader>
-      <CardContent className="grid gap-5 p-5 sm:p-6">
-        <CategoryImageInput disabled={isSaving} error={errors.image} form={form} onSelectFile={onImageChange} />
-
-        <FormField error={errors.name} htmlFor="category-name" label="Nombre de la categoría">
-          <Input
-            className="rounded-none border-neutral-200 bg-white"
-            disabled={isSaving}
-            id="category-name"
-            onChange={(event) => onChange('name', event.target.value)}
-            placeholder="Ej: Pizzas"
-            value={form.name}
-          />
-        </FormField>
-
-        <FormField error={errors.displayOrder} htmlFor="category-order" label="Orden de aparición">
-          <Input
-            className="rounded-none border-neutral-200 bg-white"
-            disabled={isSaving}
-            id="category-order"
-            min="1"
-            onChange={(event) => onChange('displayOrder', event.target.value)}
-            step="1"
-            type="number"
-            value={form.displayOrder}
-          />
-        </FormField>
-
-        <SwitchField
-          checked={form.isActive}
-          disabled={isSaving}
-          label="Categoría activa"
-          onCheckedChange={(value) => onChange('isActive', value)}
-        />
-
-        <div className="grid gap-3 pt-2 sm:grid-cols-2">
-          <Button disabled={isSaving} onClick={onCancel} type="button" variant="secondary">
-            Cancelar
-          </Button>
-          <Button disabled={isSaving} onClick={onSubmit} type="button">
-            {isSaving ? 'Guardando...' : isEditMode ? 'Guardar cambios' : 'Crear categoría'}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function CategoryMobileCard({ category, onEdit, productCount }) {
-  return (
-    <Card className="rounded-none border-neutral-200 bg-white">
-      <CardContent className="grid gap-4 p-4">
-        <div className="flex items-start gap-4">
-          <CategoryThumbnail imagePath={category.image_path} name={category.name} />
-          <div className="min-w-0 flex-1">
-            <h2 className="text-base font-bold text-neutral-950">{category.name}</h2>
-            <div className="mt-2 flex flex-wrap gap-2 text-sm text-neutral-500">
-              <span>Productos: {productCount}</span>
-              <span>Orden: {category.display_order}</span>
-            </div>
-          </div>
-          <CategoryStatus isActive={category.is_active} />
-        </div>
-        <Button className="w-full" onClick={() => onEdit(category)} type="button" variant="secondary">
-          Editar
-        </Button>
-      </CardContent>
-    </Card>
-  );
 }
 
 export function CategoriesPage() {
@@ -547,42 +365,6 @@ export function CategoriesPage() {
     setIsMobileFormOpen(false);
   }
 
-  const renderTableBody = () => {
-    if (isLoading) {
-      return <TableStateRow colSpan={6}>Cargando categorías...</TableStateRow>;
-    }
-
-    if (!loadError && filteredCategories.length === 0) {
-      return <TableStateRow colSpan={6}>{emptyCategoriesMessage}</TableStateRow>;
-    }
-
-    return filteredCategories.map((category) => (
-      <TableRow key={category.id}>
-        <TableCell>
-          <CategoryThumbnail imagePath={category.image_path} name={category.name} />
-        </TableCell>
-        <TableCell className="font-bold text-neutral-950">{category.name}</TableCell>
-        <TableCell>{getProductCount(category.id, productStats.counts)}</TableCell>
-        <TableCell>{category.display_order}</TableCell>
-        <TableCell>
-          <CategoryStatus isActive={category.is_active} />
-        </TableCell>
-        <TableCell className="sticky right-0 bg-white text-right shadow-[-16px_0_18px_-22px_rgba(15,15,15,0.8)]">
-          <Button
-            className="whitespace-nowrap"
-            disabled={isSaving}
-            onClick={() => handleEditCategory(category)}
-            size="sm"
-            type="button"
-            variant="secondary"
-          >
-            Editar
-          </Button>
-        </TableCell>
-      </TableRow>
-    ));
-  };
-
   return (
     <AdminPageContainer>
       <PageHeader
@@ -635,58 +417,26 @@ export function CategoriesPage() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="grid gap-4">
-          <Card className="hidden overflow-hidden rounded-none border-neutral-200 bg-white lg:block">
-            <div className="overflow-x-auto">
-              <Table className="min-w-[860px]">
-                <TableHeader>
-                  <TableRow className="bg-neutral-50 hover:bg-neutral-50">
-                    <TableHead>Foto</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead>Productos</TableHead>
-                    <TableHead>Orden</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="sticky right-0 z-10 bg-neutral-50 text-right shadow-[-16px_0_18px_-22px_rgba(15,15,15,0.8)]">
-                      Acciones
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>{renderTableBody()}</TableBody>
-              </Table>
-            </div>
-            <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-200 bg-neutral-50 px-6 py-4">
-              <span className="text-sm text-neutral-500">
-                Mostrando {filteredCategories.length === 0 ? 0 : 1} a {filteredCategories.length} de {filteredCategories.length} categorías
-              </span>
-              <div className="flex items-center gap-1">
-                <Button className="size-10 min-h-10 p-0" disabled size="icon" type="button" variant="secondary">
-                  <ChevronLeft className="size-5" aria-hidden="true" />
-                </Button>
-                <Button className="size-10 min-h-10 p-0" disabled={isLoading} size="icon" type="button">
-                  1
-                </Button>
-                <Button className="size-10 min-h-10 p-0" disabled size="icon" type="button" variant="secondary">
-                  <ChevronRight className="size-5" aria-hidden="true" />
-                </Button>
-              </div>
-            </footer>
-          </Card>
+          <CategoriesTable
+            categories={filteredCategories}
+            emptyMessage={emptyCategoriesMessage}
+            getProductCount={getProductCount}
+            isLoading={isLoading}
+            isSaving={isSaving}
+            loadError={loadError}
+            onEditCategory={handleEditCategory}
+            productCounts={productStats.counts}
+          />
 
-          <section className="grid gap-4 lg:hidden" aria-label="Categorías">
-            {isLoading ? <LoadingState message="Cargando categorías..." /> : null}
-            {!isLoading && !loadError && filteredCategories.length === 0 ? (
-              <EmptyState title={emptyCategoriesMessage} />
-            ) : null}
-            {!isLoading
-              ? filteredCategories.map((category) => (
-                  <CategoryMobileCard
-                    category={category}
-                    key={category.id}
-                    onEdit={handleEditCategory}
-                    productCount={getProductCount(category.id, productStats.counts)}
-                  />
-                ))
-              : null}
-          </section>
+          <CategoryMobileList
+            categories={filteredCategories}
+            emptyMessage={emptyCategoriesMessage}
+            getProductCount={getProductCount}
+            isLoading={isLoading}
+            loadError={loadError}
+            onEditCategory={handleEditCategory}
+            productCounts={productStats.counts}
+          />
         </div>
 
         <aside className="hidden xl:block">
