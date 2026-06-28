@@ -10,6 +10,7 @@ import { Alert } from '@/components/ui/alert.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
 import { Label } from '@/components/ui/label.jsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select.jsx';
 import { Separator } from '@/components/ui/separator.jsx';
 import { Switch } from '@/components/ui/switch.jsx';
 import { Textarea } from '@/components/ui/textarea.jsx';
@@ -375,20 +376,23 @@ export function ProductEditPage() {
                   </FormField>
 
                   <FormField error={errors.category_id} label="Categoría">
-                    <select
-                      className="flex min-h-11 w-full rounded-none border border-neutral-200 bg-white px-4 text-base text-foreground outline-none transition-colors hover:border-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20 disabled:bg-neutral-50"
+                    <Select
                       disabled={isSaving}
-                      onChange={(event) => updateField('category_id', event.target.value)}
+                      onValueChange={(value) => updateField('category_id', value)}
                       value={form.category_id}
                     >
-                      <option value="">Seleccionar categoría</option>
-                      {categoryOptions.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                          {!category.is_active ? ' (inactiva)' : ''}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="min-h-11 rounded-none border-neutral-200 bg-white px-4 text-base shadow-none hover:border-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20 disabled:bg-neutral-50">
+                        <SelectValue placeholder="Seleccionar categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categoryOptions.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                            {!category.is_active ? ' (inactiva)' : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormField>
                 </div>
 
