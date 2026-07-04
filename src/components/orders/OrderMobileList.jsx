@@ -1,15 +1,25 @@
 import { formatCurrency, formatTime } from '@/utils/formatters.js';
 import { getProductsSummary } from '@/components/orders/orderHelpers.js';
-import { OrderActions, OrderStatusControl, PaymentBadge } from '@/components/orders/orderPresentation.jsx';
+import { OrderActions, OrderStatusControl, PaymentAction } from '@/components/orders/orderPresentation.jsx';
 
-function OrderMobileCard({ isStatusControlDisabled = false, isUpdatingStatus, onChangeStatus, order, onCharge, onEdit, onPrint, onView }) {
+function OrderMobileCard({
+  isStatusControlDisabled = false,
+  isUpdatingStatus,
+  onChangeStatus,
+  onCharge,
+  onDelete,
+  onEdit,
+  onPrint,
+  onView,
+  order,
+}) {
   return (
     <article className="min-w-0 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4">
       <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:justify-between">
         <div className="min-w-0">
           <p className="text-lg font-bold leading-none text-neutral-950">{order.orderNumber}</p>
         </div>
-        <PaymentBadge paymentStatus={order.paymentStatus} />
+        <PaymentAction onCharge={onCharge} order={order} />
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 border-t border-neutral-100 pt-4 text-sm">
@@ -49,7 +59,7 @@ function OrderMobileCard({ isStatusControlDisabled = false, isUpdatingStatus, on
           <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-400">Total</p>
           <p className="mt-1 text-xl font-bold leading-none text-neutral-950">{formatCurrency(order.total)}</p>
         </div>
-        <OrderActions order={order} onCharge={onCharge} onEdit={onEdit} onPrint={onPrint} onView={onView} />
+        <OrderActions order={order} onDelete={onDelete} onEdit={onEdit} onPrint={onPrint} onView={onView} />
       </div>
     </article>
   );
@@ -58,6 +68,7 @@ function OrderMobileCard({ isStatusControlDisabled = false, isUpdatingStatus, on
 export function OrderMobileList({
   onChangeStatus,
   onCharge,
+  onDelete,
   onEdit,
   onPrint,
   onView,
@@ -72,11 +83,12 @@ export function OrderMobileList({
           isStatusControlDisabled={Boolean(updatingStatusOrderId) && updatingStatusOrderId !== order.id}
           isUpdatingStatus={updatingStatusOrderId === order.id}
           onChangeStatus={onChangeStatus}
-          order={order}
           onCharge={onCharge}
+          onDelete={onDelete}
           onEdit={onEdit}
           onPrint={onPrint}
           onView={onView}
+          order={order}
         />
       ))}
     </section>

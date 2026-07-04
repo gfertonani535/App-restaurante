@@ -19,6 +19,7 @@ import { getCategories } from '@/services/categories.service.js';
 import { getProducts } from '@/services/products.service.js';
 import {
   calculateOrderRemainingTotal,
+  cancelOrder,
   createOrder,
   getOrderById,
   getOrders,
@@ -355,6 +356,38 @@ export function OrdersPage() {
     }
   }
 
+  async function handleDeleteOrder(order) {
+    if (isSaving) {
+      return;
+    }
+
+    if (order.paymentStatus !== 'unpaid' || order.cashClosureId || ['closed', 'cancelled'].includes(order.status)) {
+      setError('Solo se pueden eliminar pedidos activos sin pagos registrados.');
+      return;
+    }
+
+    const confirmed = window.confirm(`¿Eliminar ${order.orderNumber}? El pedido se marcará como cancelado.`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsSaving(true);
+    setError('');
+    setFeedback('');
+
+    try {
+      await cancelOrder(order.id);
+      await loadData();
+      setFeedback('Pedido eliminado correctamente.');
+    } catch (deleteError) {
+      setError(deleteError.message || 'No se pudo eliminar el pedido.');
+      await loadData();
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   function handlePrintOrder(order) {
     const printWindow = window.open('', '_blank', 'width=420,height=640');
 
@@ -461,6 +494,7 @@ export function OrdersPage() {
             isStatusControlDisabled={Boolean(updatingStatusOrderId)}
             onChangeStatus={handleChangeOrderStatus}
             onCharge={setPaymentOrder}
+            onDelete={handleDeleteOrder}
             onEdit={handleEditOrder}
             onPrint={handlePrintOrder}
             onSort={handleSort}
@@ -474,6 +508,7 @@ export function OrdersPage() {
           <OrderMobileList
             onChangeStatus={handleChangeOrderStatus}
             onCharge={setPaymentOrder}
+            onDelete={handleDeleteOrder}
             onEdit={handleEditOrder}
             onPrint={handlePrintOrder}
             onView={setDetailOrder}

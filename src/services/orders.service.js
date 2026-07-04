@@ -181,7 +181,7 @@ export function normalizeOrder(order) {
     orderNumber: `#${order.order_number}`,
     type: getOrderType(order.table_label),
     tableOrLocation: order.table_label || '-',
-    customerOrWaiter: order.customer_name || 'Cliente sin nombre',
+    customerOrWaiter: order.customer_name || 'Cliente',
     waiterLabel: `Mesa: ${order.table_label || '-'}`,
     responsibleName,
     status: order.status,

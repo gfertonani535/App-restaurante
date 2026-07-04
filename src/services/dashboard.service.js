@@ -67,7 +67,7 @@ function normalizeRecentOrder(order) {
     id: order.id,
     orderNumber: order.order_number,
     tableLabel: order.table_label || '-',
-    customerName: order.customer_name || 'Cliente sin nombre',
+    customerName: order.customer_name || 'Cliente',
     status: order.status,
     paymentStatus: order.payment_status,
     total: toNumber(order.total),

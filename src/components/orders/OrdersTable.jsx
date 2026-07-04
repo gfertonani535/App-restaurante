@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
 import { formatCurrency, formatTime } from '@/utils/formatters.js';
 import { getProductsSummary } from '@/components/orders/orderHelpers.js';
-import { OrderActions, OrderStatusControl, PaymentBadge } from '@/components/orders/orderPresentation.jsx';
+import { OrderActions, OrderStatusControl, PaymentAction } from '@/components/orders/orderPresentation.jsx';
 
 const tableSortColumns = [
   { id: 'orderNumber', label: 'Orden' },
@@ -43,6 +43,7 @@ export function OrdersTable({
   isStatusControlDisabled,
   onChangeStatus,
   onCharge,
+  onDelete,
   onEdit,
   onPrint,
   onSort,
@@ -99,7 +100,7 @@ export function OrdersTable({
                 />
               </TableCell>
               <TableCell className={ordersTableCellClassName}>
-                <PaymentBadge paymentStatus={order.paymentStatus} />
+                <PaymentAction onCharge={onCharge} order={order} />
               </TableCell>
               <TableCell className={`${ordersTableCellClassName} text-sm text-neutral-500`}>
                 {formatTime(order.createdAt)}
@@ -108,7 +109,7 @@ export function OrdersTable({
                 <div className="flex items-center justify-end gap-2">
                   <OrderActions
                     order={order}
-                    onCharge={onCharge}
+                    onDelete={onDelete}
                     onEdit={onEdit}
                     onPrint={onPrint}
                     onView={onView}

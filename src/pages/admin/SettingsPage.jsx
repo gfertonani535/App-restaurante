@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Clock,
   Globe2,
   Info,
   KeyRound,
   LockKeyhole,
   LogOut,
-  Mail,
   PlusCircle,
   RefreshCw,
   ShieldCheck,
@@ -15,9 +15,11 @@ import {
   UsersRound,
   X,
 } from 'lucide-react';
+import { BusinessHoursSection } from '@/components/settings/BusinessHoursSection.jsx';
+import { RestaurantProfileSection } from '@/components/settings/RestaurantProfileSection.jsx';
+import { SocialLinksSection } from '@/components/settings/SocialLinksSection.jsx';
 import { AdminPageContainer } from '@/components/common/AdminPageContainer.jsx';
 import { FieldError } from '@/components/common/FieldError.jsx';
-import { FormField } from '@/components/common/FormField.jsx';
 import { MetricCard } from '@/components/common/MetricCard.jsx';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { SearchField } from '@/components/common/SearchField.jsx';
@@ -31,13 +33,20 @@ import { Input } from '@/components/ui/input.jsx';
 import { Label } from '@/components/ui/label.jsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select.jsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
-import { Textarea } from '@/components/ui/textarea.jsx';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { cn } from '@/lib/utils';
 import {
+  createBusinessHourSlot,
   createDefaultRestaurantSettings,
+  createSocialLink,
+  deleteBusinessHourSlot,
+  deleteSocialLink,
+  getBusinessHours,
   getRestaurantSettings,
+  getSocialLinks,
+  updateBusinessHourSlot,
   updateRestaurantSettings,
+  updateSocialLink,
 } from '@/services/settings.service.js';
 import {
   getUsers,
@@ -63,6 +72,35 @@ const roles = [
 const roleByValue = Object.fromEntries(roles.map((role) => [role.value, role]));
 
 const emptySettingsForm = createDefaultRestaurantSettings();
+const socialLinksActiveLimit = 4;
+const emptySocialLinkForm = {
+  provider: '',
+  label: '',
+  url: '',
+  displayOrder: '1',
+  isActive: true,
+};
+const emptyBusinessHourForm = {
+  weekday: '1',
+  opensAt: '09:00',
+  closesAt: '18:00',
+  isClosed: false,
+  slotNumber: '1',
+};
+
+function getNextSocialOrder(links) {
+  const maxOrder = links.reduce((maxOrderValue, link) => Math.max(maxOrderValue, Number(link.displayOrder) || 0), 0);
+  return String(maxOrder + 1);
+}
+
+function getNextBusinessSlot(hours, weekday) {
+  const weekdayNumber = Number(weekday);
+  const maxSlot = hours
+    .filter((slot) => Number(slot.weekday) === weekdayNumber)
+    .reduce((maxSlotValue, slot) => Math.max(maxSlotValue, Number(slot.slotNumber) || 0), 0);
+
+  return String(maxSlot + 1);
+}
 
 function normalizeText(value) {
   return String(value ?? '')
@@ -204,39 +242,60 @@ function EditUserModal({
 }
 
 function GeneralSettingsSection({
+  businessHourErrors,
+  businessHourForm,
+  businessHours,
   errors,
   form,
   isAdmin,
+  isBusinessHourEditing,
   isLoading,
   isSaving,
+  isSocialLinkEditing,
   loadError,
+  onBusinessHourCancel,
+  onBusinessHourChange,
+  onBusinessHourDelete,
+  onBusinessHourEdit,
+  onBusinessHourNew,
+  onBusinessHourSave,
   onChange,
   onRetry,
   onSave,
+  onSocialLinkCancel,
+  onSocialLinkChange,
+  onSocialLinkDelete,
+  onSocialLinkEdit,
+  onSocialLinkNew,
+  onSocialLinkSave,
+  onSocialLinkToggle,
   settings,
+  socialLinkErrors,
+  socialLinkForm,
+  socialLinks,
   successMessage,
 }) {
-  const isReadOnly = !isAdmin || isSaving || isLoading || !settings?.id;
-  const contactSummary = form.whatsapp || form.instagram || form.facebook || 'Sin contacto cargado';
-  const publicMenuSummary = form.footerText || form.shortDescription || 'Sin texto público cargado';
+  const isSettingsReadOnly = !isAdmin || isSaving || isLoading || !settings?.id;
+  const isCatalogReadOnly = !isAdmin || isSaving || isLoading;
+  const activeSocialLinks = socialLinks.filter((link) => link.isActive).length;
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold text-neutral-950">General</h2>
         <p className="mt-1 text-sm text-neutral-500">
-          Configurá la información principal del restaurante y del menú público.
+          Configura la informacion principal del restaurante, redes sociales y horarios de atencion.
         </p>
       </div>
 
       {!isAdmin && !isLoading ? (
-        <Alert title="No tenés permisos para modificar la configuración general.">
-          Podés consultar estos datos, pero solo un administrador puede guardarlos.
+        <Alert title="No tenes permisos para modificar la configuracion general.">
+          Podes consultar estos datos, pero solo un administrador o encargado puede guardarlos.
         </Alert>
       ) : null}
 
       {loadError ? (
-        <Alert variant="destructive" title="No se pudo cargar la configuración.">
+        <Alert variant="destructive" title="No se pudo cargar la configuracion.">
           <div className="grid gap-3">
             <p>{loadError}</p>
             <Button className="w-fit" onClick={onRetry} size="sm" type="button">
@@ -246,11 +305,11 @@ function GeneralSettingsSection({
         </Alert>
       ) : null}
 
-      {isLoading ? <Alert title="Cargando configuración...">Estamos obteniendo los datos generales.</Alert> : null}
+      {isLoading ? <Alert title="Cargando configuracion...">Estamos obteniendo los datos generales.</Alert> : null}
 
       {!isLoading && !loadError && !settings?.id ? (
-        <Alert title="Todavía no hay configuración registrada.">
-          Ejecutá la migración inicial para crear la fila de configuración del restaurante.
+        <Alert title="Todavia no hay configuracion registrada.">
+          Ejecuta la migracion inicial para crear la fila de configuracion del restaurante.
         </Alert>
       ) : null}
 
@@ -260,137 +319,51 @@ function GeneralSettingsSection({
         </Alert>
       ) : null}
 
-      <section className="grid gap-4 lg:grid-cols-3" aria-label="Resumen de configuración general">
-        <MetricCard icon={Store} label="Restaurante" value={form.restaurantName || 'RestaurantOS'} helper={form.currency || 'ARS'} />
-        <MetricCard icon={Mail} label="Contacto" value={contactSummary} helper={form.address || 'Sin dirección'} />
-        <MetricCard icon={Globe2} label="Menú público" value={form.currency || 'ARS'} helper={publicMenuSummary} />
+      <section className="grid gap-4 lg:grid-cols-3" aria-label="Resumen de configuracion general">
+        <MetricCard icon={Store} label="Restaurante" value={form.restaurantName || 'RestaurantOS'} helper={form.address || 'Sin direccion'} />
+        <MetricCard icon={Globe2} label="Redes activas" value={String(activeSocialLinks)} helper={'Maximo ' + socialLinksActiveLimit + ' en footer'} />
+        <MetricCard icon={Clock} label="Horarios" value={String(businessHours.length)} helper="franjas configuradas" />
       </section>
 
-      <Card className="rounded-none border-neutral-200 bg-white">
-        <CardHeader className="px-5 sm:px-6">
-          <div>
-            <CardTitle>Datos generales</CardTitle>
-            <CardDescription>Información pública y configuración regional del restaurante.</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-8 p-5 sm:p-6">
-          <section className="grid gap-4">
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-neutral-950">Restaurante</h3>
-              <p className="mt-1 text-sm text-neutral-500">Nombre y descripción principal.</p>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-2">
-              <FormField error={errors.restaurantName} htmlFor="restaurant-name" label="Nombre del restaurante">
-                <Input
-                  className="rounded-none border-neutral-200 bg-white"
-                  disabled={isReadOnly}
-                  id="restaurant-name"
-                  onChange={(event) => onChange('restaurantName', event.target.value)}
-                  value={form.restaurantName}
-                />
-              </FormField>
-              <FormField htmlFor="short-description" label="Descripción corta">
-                <Input
-                  className="rounded-none border-neutral-200 bg-white"
-                  disabled={isReadOnly}
-                  id="short-description"
-                  onChange={(event) => onChange('shortDescription', event.target.value)}
-                  value={form.shortDescription}
-                />
-              </FormField>
-            </div>
-          </section>
+      <RestaurantProfileSection
+        errors={errors}
+        form={form}
+        isReadOnly={isSettingsReadOnly}
+        isSaving={isSaving}
+        onChange={onChange}
+        onSave={onSave}
+      />
 
-          <section className="grid gap-4">
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-neutral-950">Contacto y redes</h3>
-              <p className="mt-1 text-sm text-neutral-500">Datos que pueden mostrarse en el menú público.</p>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-3">
-              <FormField htmlFor="whatsapp" label="WhatsApp">
-                <Input
-                  className="rounded-none border-neutral-200 bg-white"
-                  disabled={isReadOnly}
-                  id="whatsapp"
-                  onChange={(event) => onChange('whatsapp', event.target.value)}
-                  value={form.whatsapp}
-                />
-              </FormField>
-              <FormField htmlFor="instagram" label="Instagram">
-                <Input
-                  className="rounded-none border-neutral-200 bg-white"
-                  disabled={isReadOnly}
-                  id="instagram"
-                  onChange={(event) => onChange('instagram', event.target.value)}
-                  value={form.instagram}
-                />
-              </FormField>
-              <FormField htmlFor="facebook" label="Facebook">
-                <Input
-                  className="rounded-none border-neutral-200 bg-white"
-                  disabled={isReadOnly}
-                  id="facebook"
-                  onChange={(event) => onChange('facebook', event.target.value)}
-                  value={form.facebook}
-                />
-              </FormField>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-2">
-              <FormField htmlFor="address" label="Dirección">
-                <Input
-                  className="rounded-none border-neutral-200 bg-white"
-                  disabled={isReadOnly}
-                  id="address"
-                  onChange={(event) => onChange('address', event.target.value)}
-                  value={form.address}
-                />
-              </FormField>
-              <FormField htmlFor="opening-hours" label="Horario de atención">
-                <Input
-                  className="rounded-none border-neutral-200 bg-white"
-                  disabled={isReadOnly}
-                  id="opening-hours"
-                  onChange={(event) => onChange('openingHours', event.target.value)}
-                  value={form.openingHours}
-                />
-              </FormField>
-            </div>
-          </section>
+      <SocialLinksSection
+        errors={socialLinkErrors}
+        form={socialLinkForm}
+        isEditing={isSocialLinkEditing}
+        isReadOnly={isCatalogReadOnly}
+        isSaving={isSaving}
+        links={socialLinks}
+        onCancel={onSocialLinkCancel}
+        onChange={onSocialLinkChange}
+        onDelete={onSocialLinkDelete}
+        onEdit={onSocialLinkEdit}
+        onNew={onSocialLinkNew}
+        onSave={onSocialLinkSave}
+        onToggleActive={onSocialLinkToggle}
+      />
 
-          <section className="grid gap-4">
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-neutral-950">Configuración regional</h3>
-              <p className="mt-1 text-sm text-neutral-500">Texto del footer y moneda del sistema.</p>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-[1fr_220px]">
-              <FormField htmlFor="footer-text" label="Texto del footer">
-                <Textarea
-                  className="rounded-none border-neutral-200 bg-white"
-                  disabled={isReadOnly}
-                  id="footer-text"
-                  onChange={(event) => onChange('footerText', event.target.value)}
-                  value={form.footerText}
-                />
-              </FormField>
-              <FormField className="h-fit" error={errors.currency} htmlFor="currency" label="Moneda">
-                <Input
-                  className="rounded-none border-neutral-200 bg-white"
-                  disabled={isReadOnly}
-                  id="currency"
-                  onChange={(event) => onChange('currency', event.target.value.toUpperCase())}
-                  value={form.currency}
-                />
-              </FormField>
-            </div>
-          </section>
-
-          <div className="flex flex-col gap-3 border-t border-neutral-200 pt-5 sm:flex-row sm:justify-end">
-            <Button disabled={isReadOnly} onClick={onSave} type="button">
-              {isSaving ? 'Guardando...' : 'Guardar cambios'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <BusinessHoursSection
+        errors={businessHourErrors}
+        form={businessHourForm}
+        hours={businessHours}
+        isEditing={isBusinessHourEditing}
+        isReadOnly={isCatalogReadOnly}
+        isSaving={isSaving}
+        onCancel={onBusinessHourCancel}
+        onChange={onBusinessHourChange}
+        onDelete={onBusinessHourDelete}
+        onEdit={onBusinessHourEdit}
+        onNew={onBusinessHourNew}
+        onSave={onBusinessHourSave}
+      />
     </div>
   );
 }
@@ -764,6 +737,14 @@ export function SettingsPage() {
   const [settingsLoadError, setSettingsLoadError] = useState('');
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
   const [isSettingsSaving, setIsSettingsSaving] = useState(false);
+  const [socialLinks, setSocialLinks] = useState([]);
+  const [selectedSocialLinkId, setSelectedSocialLinkId] = useState(null);
+  const [socialLinkForm, setSocialLinkForm] = useState(emptySocialLinkForm);
+  const [socialLinkErrors, setSocialLinkErrors] = useState({});
+  const [businessHours, setBusinessHours] = useState([]);
+  const [selectedBusinessHourId, setSelectedBusinessHourId] = useState(null);
+  const [businessHourForm, setBusinessHourForm] = useState(emptyBusinessHourForm);
+  const [businessHourErrors, setBusinessHourErrors] = useState({});
 
   const [passwordForm, setPasswordForm] = useState({ password: '', confirmPassword: '' });
   const [passwordErrors, setPasswordErrors] = useState({});
@@ -792,13 +773,39 @@ export function SettingsPage() {
     setSettingsLoadError('');
 
     try {
-      const nextSettings = await getRestaurantSettings();
+      const [nextSettings, nextSocialLinks, nextBusinessHours] = await Promise.all([
+        getRestaurantSettings(),
+        getSocialLinks(),
+        getBusinessHours(),
+      ]);
       setSettings(nextSettings);
       setSettingsForm(nextSettings ?? createDefaultRestaurantSettings());
+      setSocialLinks(nextSocialLinks);
+      setSocialLinkForm({
+        ...emptySocialLinkForm,
+        displayOrder: getNextSocialOrder(nextSocialLinks),
+      });
+      setSelectedSocialLinkId(null);
+      setSocialLinkErrors({});
+      setBusinessHours(nextBusinessHours);
+      setBusinessHourForm({
+        ...emptyBusinessHourForm,
+        slotNumber: getNextBusinessSlot(nextBusinessHours, emptyBusinessHourForm.weekday),
+      });
+      setSelectedBusinessHourId(null);
+      setBusinessHourErrors({});
     } catch (error) {
       setSettings(null);
       setSettingsForm(createDefaultRestaurantSettings());
-      setSettingsLoadError(error instanceof Error ? error.message : 'No se pudo cargar la configuración.');
+      setSocialLinks([]);
+      setSelectedSocialLinkId(null);
+      setSocialLinkForm(emptySocialLinkForm);
+      setSocialLinkErrors({});
+      setBusinessHours([]);
+      setSelectedBusinessHourId(null);
+      setBusinessHourForm(emptyBusinessHourForm);
+      setBusinessHourErrors({});
+      setSettingsLoadError(error instanceof Error ? error.message : 'No se pudo cargar la configuracion.');
     } finally {
       setIsSettingsLoading(false);
     }
@@ -927,10 +934,6 @@ export function SettingsPage() {
       nextErrors.restaurantName = 'El nombre del restaurante es obligatorio.';
     }
 
-    if (!settingsForm.currency.trim()) {
-      nextErrors.currency = 'La moneda es obligatoria.';
-    }
-
     setSettingsErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -948,24 +951,334 @@ export function SettingsPage() {
       const updatedSettings = await updateRestaurantSettings(settings?.id, {
         restaurantName: settingsForm.restaurantName.trim(),
         shortDescription: settingsForm.shortDescription.trim(),
-        whatsapp: settingsForm.whatsapp.trim(),
-        instagram: settingsForm.instagram.trim(),
-        facebook: settingsForm.facebook.trim(),
         address: settingsForm.address.trim(),
-        openingHours: settingsForm.openingHours.trim(),
-        footerText: settingsForm.footerText.trim(),
-        currency: settingsForm.currency.trim().toUpperCase(),
       });
       setSettings(updatedSettings);
       setSettingsForm(updatedSettings);
-      setSettingsSuccess('Configuración guardada correctamente.');
+      setSettingsSuccess('Datos del restaurante guardados correctamente.');
     } catch (error) {
-      setSettingsLoadError(error instanceof Error ? error.message : 'No se pudo guardar la configuración.');
+      setSettingsLoadError(error instanceof Error ? error.message : 'No se pudo guardar la configuracion.');
     } finally {
       setIsSettingsSaving(false);
     }
   }
 
+  function resetSocialLinkForm(nextLinks = socialLinks) {
+    setSelectedSocialLinkId(null);
+    setSocialLinkForm({
+      ...emptySocialLinkForm,
+      displayOrder: getNextSocialOrder(nextLinks),
+    });
+    setSocialLinkErrors({});
+  }
+
+  function updateSocialLinkField(field, value) {
+    setSocialLinkForm((currentForm) => ({ ...currentForm, [field]: value }));
+    setSocialLinkErrors((currentErrors) => ({ ...currentErrors, [field]: '' }));
+    setSettingsSuccess('');
+  }
+
+  function validateSocialLink() {
+    const nextErrors = {};
+    const displayOrder = Number(socialLinkForm.displayOrder);
+
+    if (!socialLinkForm.provider.trim()) {
+      nextErrors.provider = 'El proveedor es obligatorio.';
+    }
+
+    if (!socialLinkForm.label.trim()) {
+      nextErrors.label = 'La etiqueta es obligatoria.';
+    }
+
+    if (!socialLinkForm.url.trim()) {
+      nextErrors.url = 'La URL es obligatoria.';
+    }
+
+    if (!Number.isInteger(displayOrder) || displayOrder < 0) {
+      nextErrors.displayOrder = 'El orden debe ser un entero mayor o igual a 0.';
+    }
+
+    const activeLinksCount = socialLinks.filter((link) => link.isActive && link.id !== selectedSocialLinkId).length;
+    if (socialLinkForm.isActive && activeLinksCount >= socialLinksActiveLimit) {
+      nextErrors.isActive = 'El footer puede tener como maximo 4 redes activas.';
+    }
+
+    setSocialLinkErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  }
+
+  function handleNewSocialLink() {
+    if (isSettingsSaving) {
+      return;
+    }
+
+    resetSocialLinkForm();
+  }
+
+  function handleEditSocialLink(link) {
+    if (isSettingsSaving) {
+      return;
+    }
+
+    setSelectedSocialLinkId(link.id);
+    setSocialLinkForm({
+      provider: link.provider,
+      label: link.label,
+      url: link.url,
+      displayOrder: String(link.displayOrder),
+      isActive: link.isActive,
+    });
+    setSocialLinkErrors({});
+    setSettingsSuccess('');
+  }
+
+  async function handleSaveSocialLink() {
+    if (!isAdmin || isSettingsSaving || !validateSocialLink()) {
+      return;
+    }
+
+    setIsSettingsSaving(true);
+    setSettingsSuccess('');
+    setSettingsLoadError('');
+
+    try {
+      const payload = {
+        provider: socialLinkForm.provider.trim().toLowerCase(),
+        label: socialLinkForm.label.trim(),
+        url: socialLinkForm.url.trim(),
+        displayOrder: Number(socialLinkForm.displayOrder),
+        isActive: socialLinkForm.isActive,
+      };
+
+      if (selectedSocialLinkId) {
+        await updateSocialLink(selectedSocialLinkId, payload);
+      } else {
+        await createSocialLink(payload);
+      }
+
+      const nextLinks = await getSocialLinks();
+      setSocialLinks(nextLinks);
+      resetSocialLinkForm(nextLinks);
+      setSettingsSuccess(selectedSocialLinkId ? 'Red social actualizada correctamente.' : 'Red social creada correctamente.');
+    } catch (error) {
+      setSettingsLoadError(error instanceof Error ? error.message : 'No se pudo guardar la red social.');
+    } finally {
+      setIsSettingsSaving(false);
+    }
+  }
+
+  async function handleToggleSocialLink(link) {
+    if (!isAdmin || isSettingsSaving) {
+      return;
+    }
+
+    if (!link.isActive) {
+      const activeLinksCount = socialLinks.filter((item) => item.isActive && item.id !== link.id).length;
+      if (activeLinksCount >= socialLinksActiveLimit) {
+        setSocialLinkErrors({ isActive: 'El footer puede tener como maximo 4 redes activas.' });
+        setSettingsSuccess('');
+        return;
+      }
+    }
+
+    setIsSettingsSaving(true);
+    setSettingsSuccess('');
+    setSocialLinkErrors({});
+
+    try {
+      await updateSocialLink(link.id, { isActive: !link.isActive });
+      const nextLinks = await getSocialLinks();
+      setSocialLinks(nextLinks);
+      setSettingsSuccess(link.isActive ? 'Red social desactivada correctamente.' : 'Red social activada correctamente.');
+    } catch (error) {
+      setSettingsLoadError(error instanceof Error ? error.message : 'No se pudo actualizar la red social.');
+    } finally {
+      setIsSettingsSaving(false);
+    }
+  }
+
+  async function handleDeleteSocialLink(link) {
+    if (!isAdmin || isSettingsSaving) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Eliminar la red social "${link.label}"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    setIsSettingsSaving(true);
+    setSettingsSuccess('');
+    setSocialLinkErrors({});
+
+    try {
+      await deleteSocialLink(link.id);
+      const nextLinks = await getSocialLinks();
+      setSocialLinks(nextLinks);
+      resetSocialLinkForm(nextLinks);
+      setSettingsSuccess('Red social eliminada correctamente.');
+    } catch (error) {
+      setSettingsLoadError(error instanceof Error ? error.message : 'No se pudo eliminar la red social.');
+    } finally {
+      setIsSettingsSaving(false);
+    }
+  }
+
+  function resetBusinessHourForm(nextHours = businessHours, weekday = emptyBusinessHourForm.weekday) {
+    setSelectedBusinessHourId(null);
+    setBusinessHourForm({
+      ...emptyBusinessHourForm,
+      weekday: String(weekday),
+      slotNumber: getNextBusinessSlot(nextHours, weekday),
+    });
+    setBusinessHourErrors({});
+  }
+
+  function updateBusinessHourField(field, value) {
+    setBusinessHourForm((currentForm) => {
+      const nextForm = { ...currentForm, [field]: value };
+
+      if (field === 'weekday' && !selectedBusinessHourId) {
+        nextForm.slotNumber = getNextBusinessSlot(businessHours, value);
+      }
+
+      if (field === 'isClosed' && value) {
+        nextForm.opensAt = '';
+        nextForm.closesAt = '';
+      }
+
+      if (field === 'isClosed' && !value) {
+        nextForm.opensAt = currentForm.opensAt || '09:00';
+        nextForm.closesAt = currentForm.closesAt || '18:00';
+      }
+
+      return nextForm;
+    });
+    setBusinessHourErrors((currentErrors) => ({ ...currentErrors, [field]: '' }));
+    setSettingsSuccess('');
+  }
+
+  function validateBusinessHour() {
+    const nextErrors = {};
+    const weekday = Number(businessHourForm.weekday);
+    const slotNumber = Number(businessHourForm.slotNumber);
+
+    if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
+      nextErrors.weekday = 'Selecciona un dia valido.';
+    }
+
+    if (!Number.isInteger(slotNumber) || slotNumber < 1) {
+      nextErrors.slotNumber = 'La franja debe ser un entero mayor o igual a 1.';
+    }
+
+    if (!businessHourForm.isClosed && !businessHourForm.opensAt) {
+      nextErrors.opensAt = 'La apertura es obligatoria.';
+    }
+
+    if (!businessHourForm.isClosed && !businessHourForm.closesAt) {
+      nextErrors.closesAt = 'El cierre es obligatorio.';
+    }
+
+    const duplicatedSlot = businessHours.some(
+      (slot) =>
+        slot.id !== selectedBusinessHourId &&
+        Number(slot.weekday) === weekday &&
+        Number(slot.slotNumber) === slotNumber,
+    );
+    if (duplicatedSlot) {
+      nextErrors.slotNumber = 'Ya existe una franja con ese numero para ese dia.';
+    }
+
+    setBusinessHourErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  }
+
+  function handleNewBusinessHour() {
+    if (isSettingsSaving) {
+      return;
+    }
+
+    resetBusinessHourForm();
+  }
+
+  function handleEditBusinessHour(slot) {
+    if (isSettingsSaving) {
+      return;
+    }
+
+    setSelectedBusinessHourId(slot.id);
+    setBusinessHourForm({
+      weekday: String(slot.weekday),
+      opensAt: slot.opensAt ?? '',
+      closesAt: slot.closesAt ?? '',
+      isClosed: slot.isClosed,
+      slotNumber: String(slot.slotNumber),
+    });
+    setBusinessHourErrors({});
+    setSettingsSuccess('');
+  }
+
+  async function handleSaveBusinessHour() {
+    if (!isAdmin || isSettingsSaving || !validateBusinessHour()) {
+      return;
+    }
+
+    setIsSettingsSaving(true);
+    setSettingsSuccess('');
+    setSettingsLoadError('');
+
+    try {
+      const payload = {
+        weekday: Number(businessHourForm.weekday),
+        opensAt: businessHourForm.isClosed ? null : businessHourForm.opensAt,
+        closesAt: businessHourForm.isClosed ? null : businessHourForm.closesAt,
+        isClosed: businessHourForm.isClosed,
+        slotNumber: Number(businessHourForm.slotNumber),
+      };
+
+      if (selectedBusinessHourId) {
+        await updateBusinessHourSlot(selectedBusinessHourId, payload);
+      } else {
+        await createBusinessHourSlot(payload);
+      }
+
+      const nextHours = await getBusinessHours();
+      setBusinessHours(nextHours);
+      resetBusinessHourForm(nextHours, businessHourForm.weekday);
+      setSettingsSuccess(selectedBusinessHourId ? 'Horario actualizado correctamente.' : 'Horario creado correctamente.');
+    } catch (error) {
+      setSettingsLoadError(error instanceof Error ? error.message : 'No se pudo guardar el horario.');
+    } finally {
+      setIsSettingsSaving(false);
+    }
+  }
+
+  async function handleDeleteBusinessHour(slot) {
+    if (!isAdmin || isSettingsSaving) {
+      return;
+    }
+
+    const confirmed = window.confirm('Eliminar esta franja horaria?');
+    if (!confirmed) {
+      return;
+    }
+
+    setIsSettingsSaving(true);
+    setSettingsSuccess('');
+    setBusinessHourErrors({});
+
+    try {
+      await deleteBusinessHourSlot(slot.id);
+      const nextHours = await getBusinessHours();
+      setBusinessHours(nextHours);
+      resetBusinessHourForm(nextHours, slot.weekday);
+      setSettingsSuccess('Horario eliminado correctamente.');
+    } catch (error) {
+      setSettingsLoadError(error instanceof Error ? error.message : 'No se pudo eliminar el horario.');
+    } finally {
+      setIsSettingsSaving(false);
+    }
+  }
   function updatePasswordField(field, value) {
     setPasswordForm((currentForm) => ({ ...currentForm, [field]: value }));
     setPasswordErrors((currentErrors) => ({ ...currentErrors, [field]: '' }));
@@ -1025,16 +1338,37 @@ export function SettingsPage() {
 
       {activeTab === 'general' ? (
         <GeneralSettingsSection
+          businessHourErrors={businessHourErrors}
+          businessHourForm={businessHourForm}
+          businessHours={businessHours}
           errors={settingsErrors}
           form={settingsForm}
           isAdmin={isAdmin}
+          isBusinessHourEditing={Boolean(selectedBusinessHourId)}
           isLoading={isSettingsLoading}
           isSaving={isSettingsSaving}
+          isSocialLinkEditing={Boolean(selectedSocialLinkId)}
           loadError={settingsLoadError}
+          onBusinessHourCancel={() => resetBusinessHourForm()}
+          onBusinessHourChange={updateBusinessHourField}
+          onBusinessHourDelete={handleDeleteBusinessHour}
+          onBusinessHourEdit={handleEditBusinessHour}
+          onBusinessHourNew={handleNewBusinessHour}
+          onBusinessHourSave={handleSaveBusinessHour}
           onChange={updateSettingsField}
           onRetry={loadSettings}
           onSave={handleSaveSettings}
+          onSocialLinkCancel={() => resetSocialLinkForm()}
+          onSocialLinkChange={updateSocialLinkField}
+          onSocialLinkDelete={handleDeleteSocialLink}
+          onSocialLinkEdit={handleEditSocialLink}
+          onSocialLinkNew={handleNewSocialLink}
+          onSocialLinkSave={handleSaveSocialLink}
+          onSocialLinkToggle={handleToggleSocialLink}
           settings={settings}
+          socialLinkErrors={socialLinkErrors}
+          socialLinkForm={socialLinkForm}
+          socialLinks={socialLinks}
           successMessage={settingsSuccess}
         />
       ) : null}
@@ -1081,3 +1415,5 @@ export function SettingsPage() {
     </AdminPageContainer>
   );
 }
+
+
