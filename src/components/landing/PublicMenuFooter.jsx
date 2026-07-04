@@ -1,26 +1,17 @@
-import { Clock, Lock, LogOut, MapPin, Phone } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Clock, Globe, Info, Link2, Lock, LogOut, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getPublicRestaurantFooterData } from '@/services/settings.service.js';
 
-const socialLinks = [
-  {
-    id: 'whatsapp',
-    label: 'WhatsApp',
-    href: 'https://wa.me/15551234567',
-    icon: WhatsappIcon,
-  },
-  {
-    id: 'instagram',
-    label: 'Instagram',
-    href: 'https://instagram.com',
-    icon: InstagramIcon,
-  },
-  {
-    id: 'facebook',
-    label: 'Facebook',
-    href: 'https://facebook.com',
-    icon: FacebookIcon,
-  },
-];
+const weekdayLabels = {
+  1: 'Lunes',
+  2: 'Martes',
+  3: 'Miércoles',
+  4: 'Jueves',
+  5: 'Viernes',
+  6: 'Sábado',
+  7: 'Domingo',
+};
 
 function WhatsappIcon(props) {
   return (
@@ -61,6 +52,96 @@ function FacebookIcon(props) {
   );
 }
 
+function YoutubeIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <rect x="3.5" y="6.5" width="17" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
+      <path d="m10.5 9.5 4.5 2.5-4.5 2.5v-5Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function TiktokIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M14 4v10.2a4 4 0 1 1-3.8-4h.4v3.2h-.4a.8.8 0 1 0 .8.8V4h3Zm0 0c.4 2.5 1.8 4 4 4.5v3.2c-1.6-.2-3-.8-4-1.7"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+const socialIconsByProvider = {
+  facebook: FacebookIcon,
+  instagram: InstagramIcon,
+  tiktok: TiktokIcon,
+  web: Globe,
+  website: Globe,
+  whatsapp: WhatsappIcon,
+  youtube: YoutubeIcon,
+};
+
+function normalizeProvider(provider) {
+  return String(provider ?? '')
+    .trim()
+    .toLowerCase();
+}
+
+function getSocialIcon(provider) {
+  return socialIconsByProvider[normalizeProvider(provider)] ?? Link2;
+}
+
+function formatHour(value) {
+  if (!value) {
+    return '';
+  }
+
+  return String(value).slice(0, 5);
+}
+
+function getBusinessHourRows(hours) {
+  const groupedHours = new Map();
+
+  for (const hour of hours) {
+    const weekday = Number(hour.weekday);
+    const current = groupedHours.get(weekday) ?? {
+      weekday,
+      isClosed: false,
+      slots: [],
+    };
+
+    if (hour.isClosed) {
+      current.isClosed = true;
+    } else if (hour.opensAt && hour.closesAt) {
+      current.slots.push({
+        opensAt: hour.opensAt,
+        closesAt: hour.closesAt,
+        slotNumber: Number(hour.slotNumber) || 1,
+      });
+    }
+
+    groupedHours.set(weekday, current);
+  }
+
+  return Array.from(groupedHours.values())
+    .sort((first, second) => first.weekday - second.weekday)
+    .map((day) => {
+      const slots = day.slots
+        .sort((first, second) => first.slotNumber - second.slotNumber)
+        .map((slot) => `${formatHour(slot.opensAt)} - ${formatHour(slot.closesAt)}`);
+
+      return {
+        weekday: day.weekday,
+        label: weekdayLabels[day.weekday] ?? 'Día',
+        value: slots.length > 0 ? slots.join(' / ') : 'Cerrado',
+      };
+    });
+}
+
 function FooterSection({ title, children }) {
   return (
     <section className="border-b border-white/10 py-6 first:pt-0 md:border-b-0 md:border-r md:py-0 md:pr-8 md:last:border-r-0 md:last:pr-0">
@@ -76,56 +157,131 @@ function IconText({ icon: Icon, children }) {
       <span className="grid size-9 shrink-0 place-items-center rounded-full bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] md:size-8">
         <Icon className="size-4 md:size-4" strokeWidth={2.3} aria-hidden="true" />
       </span>
-      <span className="text-sm font-medium leading-tight tracking-normal text-white md:text-sm ">{children}</span>
+      <span className="text-sm font-medium leading-tight tracking-normal text-white md:text-sm">{children}</span>
     </div>
   );
 }
 
 export function PublicMenuFooter({ isAuthenticated, onToggleSession }) {
+  const [footerData, setFooterData] = useState({
+    settings: null,
+    socialLinks: [],
+    businessHours: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const SessionIcon = isAuthenticated ? LogOut : Lock;
   const sessionLabel = isAuthenticated ? 'Cerrar sesión' : 'Iniciar sesión';
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadFooterData() {
+      setIsLoading(true);
+      setLoadError('');
+
+      try {
+        const data = await getPublicRestaurantFooterData();
+        if (isMounted) {
+          setFooterData(data);
+        }
+      } catch {
+        if (isMounted) {
+          setFooterData({ settings: null, socialLinks: [], businessHours: [] });
+          setLoadError('No pudimos cargar la información del restaurante.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadFooterData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const settings = footerData.settings ?? {};
+  const restaurantName = settings.restaurantName || 'RestaurantOS';
+  const shortDescription = settings.shortDescription || 'Carta digital del restaurante.';
+  const address = settings.address || 'Dirección no configurada.';
+  const visibleSocialLinks = useMemo(
+    () => footerData.socialLinks.filter((link) => link.isActive).slice(0, 4),
+    [footerData.socialLinks],
+  );
+  const businessHourRows = useMemo(() => getBusinessHourRows(footerData.businessHours), [footerData.businessHours]);
 
   return (
     <footer className="relative left-1/2 right-1/2 mt-8 w-screen -translate-x-1/2 bg-[#111315] px-5 py-8 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:px-8 md:py-10">
       <div className="mx-auto max-w-6xl">
+        {loadError ? <p className="mb-5 text-sm font-medium text-white/55">{loadError}</p> : null}
+
         <div className="grid gap-0 md:grid-cols-[1.15fr_1.15fr_0.8fr] md:gap-8">
-          <FooterSection title="Contacto y Ubicación">
+          <FooterSection title="Contacto y ubicación">
             <div className="grid gap-4">
-              <IconText icon={Phone}>+1 (555) 123-4567</IconText>
-              <IconText icon={MapPin}>123 Gourmet Ave, Food City</IconText>
+              {isLoading ? (
+                <p className="text-sm font-medium text-white/60">Cargando datos del restaurante...</p>
+              ) : (
+                <>
+                  <IconText icon={Info}>{shortDescription}</IconText>
+                  <IconText icon={MapPin}>{address}</IconText>
+                </>
+              )}
             </div>
           </FooterSection>
 
           <FooterSection title="Horarios">
-            <IconText icon={Clock}>{'Lun\u2013Dom: 12:00 PM - 11:00 PM'}</IconText>
+            {isLoading ? (
+              <IconText icon={Clock}>Cargando horarios...</IconText>
+            ) : businessHourRows.length > 0 ? (
+              <div className="grid gap-2">
+                {businessHourRows.map((row) => (
+                  <div className="grid gap-1 text-sm font-medium text-white" key={row.weekday}>
+                    <span className="text-white/55">{row.label}</span>
+                    <span>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <IconText icon={Clock}>Horarios no configurados.</IconText>
+            )}
           </FooterSection>
 
           <FooterSection title="Seguinos">
-            <div className="flex flex-wrap gap-3">
-              {socialLinks.map((link) => {
-                const Icon = link.icon;
+            {isLoading ? (
+              <p className="text-sm font-medium text-white/60">Cargando redes...</p>
+            ) : visibleSocialLinks.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {visibleSocialLinks.map((link) => {
+                  const Icon = getSocialIcon(link.provider);
 
-                return (
-                  <a
-                    aria-label={link.label}
-                    className="grid size-11 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 md:size-9"
-                    href={link.href}
-                    key={link.id}
-                    rel="noreferrer"
-                    target="_blank"
-                    title={link.label}
-                  >
-                    <Icon className="size-6 md:size-6" />
-                  </a>
-                );
-              })}
-            </div>
+                  return (
+                    <a
+                      aria-label={link.label}
+                      className="grid size-11 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 md:size-9"
+                      href={link.url}
+                      key={link.id}
+                      rel="noreferrer"
+                      target="_blank"
+                      title={link.label}
+                    >
+                      <Icon className="size-6 md:size-6" />
+                    </a>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-white/60">No hay redes configuradas.</p>
+            )}
           </FooterSection>
         </div>
 
         <div className="mt-6 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-5 text-center md:flex-row md:text-left">
           <p className="order-2 max-w-full text-[10px] font-medium uppercase leading-4 tracking-[0.1em] text-white/35 [overflow-wrap:anywhere] md:order-1 md:text-xs">
-            © 2026 RestaurantOS. Todos los derechos reservados.
+            © 2026 {restaurantName}. Todos los derechos reservados.
           </p>
           <button
             className={cn(

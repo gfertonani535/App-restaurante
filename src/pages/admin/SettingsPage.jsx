@@ -245,9 +245,9 @@ function GeneralSettingsSection({
   businessHourErrors,
   businessHourForm,
   businessHours,
+  canManageRestaurantSettings,
   errors,
   form,
-  isAdmin,
   isBusinessHourEditing,
   isLoading,
   isSaving,
@@ -275,8 +275,8 @@ function GeneralSettingsSection({
   socialLinks,
   successMessage,
 }) {
-  const isSettingsReadOnly = !isAdmin || isSaving || isLoading || !settings?.id;
-  const isCatalogReadOnly = !isAdmin || isSaving || isLoading;
+  const isSettingsReadOnly = !canManageRestaurantSettings || isSaving || isLoading || !settings?.id;
+  const isCatalogReadOnly = !canManageRestaurantSettings || isSaving || isLoading;
   const activeSocialLinks = socialLinks.filter((link) => link.isActive).length;
 
   return (
@@ -288,7 +288,7 @@ function GeneralSettingsSection({
         </p>
       </div>
 
-      {!isAdmin && !isLoading ? (
+      {!canManageRestaurantSettings && !isLoading ? (
         <Alert title="No tenes permisos para modificar la configuracion general.">
           Podes consultar estos datos, pero solo un administrador o encargado puede guardarlos.
         </Alert>
@@ -820,7 +820,8 @@ export function SettingsPage() {
     return () => window.clearTimeout(timeoutId);
   }, [loadSettings, loadUsers]);
 
-  const isAdmin = role === 'admin';
+  const canManageUsers = role === 'admin';
+  const canManageRestaurantSettings = role === 'admin' || role === 'manager';
   const adminCount = users.filter((user) => user.role === 'admin').length;
   const filteredUsers = useMemo(() => {
     const normalizedSearch = normalizeText(searchTerm);
@@ -842,7 +843,7 @@ export function SettingsPage() {
   ];
 
   function handleOpenEditModal(user) {
-    if (!isAdmin) {
+    if (!canManageUsers) {
       return;
     }
 
@@ -898,7 +899,7 @@ export function SettingsPage() {
   }
 
   async function handleSaveUser() {
-    if (!selectedUser || isSaving || !isAdmin || !validateForm()) {
+    if (!selectedUser || isSaving || !canManageUsers || !validateForm()) {
       return;
     }
 
@@ -939,7 +940,7 @@ export function SettingsPage() {
   }
 
   async function handleSaveSettings() {
-    if (!isAdmin || isSettingsSaving || !validateSettings()) {
+    if (!canManageRestaurantSettings || isSettingsSaving || !validateSettings()) {
       return;
     }
 
@@ -1033,7 +1034,7 @@ export function SettingsPage() {
   }
 
   async function handleSaveSocialLink() {
-    if (!isAdmin || isSettingsSaving || !validateSocialLink()) {
+    if (!canManageRestaurantSettings || isSettingsSaving || !validateSocialLink()) {
       return;
     }
 
@@ -1068,7 +1069,7 @@ export function SettingsPage() {
   }
 
   async function handleToggleSocialLink(link) {
-    if (!isAdmin || isSettingsSaving) {
+    if (!canManageRestaurantSettings || isSettingsSaving) {
       return;
     }
 
@@ -1098,7 +1099,7 @@ export function SettingsPage() {
   }
 
   async function handleDeleteSocialLink(link) {
-    if (!isAdmin || isSettingsSaving) {
+    if (!canManageRestaurantSettings || isSettingsSaving) {
       return;
     }
 
@@ -1179,6 +1180,24 @@ export function SettingsPage() {
       nextErrors.closesAt = 'El cierre es obligatorio.';
     }
 
+    if (businessHourForm.isClosed && (businessHourForm.opensAt || businessHourForm.closesAt)) {
+      nextErrors.opensAt = 'Un dia cerrado no debe tener horarios de apertura o cierre.';
+    }
+
+    const slotsForSameDay = businessHours.filter(
+      (slot) => slot.id !== selectedBusinessHourId && Number(slot.weekday) === weekday,
+    );
+    const hasClosedSlotForDay = slotsForSameDay.some((slot) => slot.isClosed);
+    const hasOpenSlotsForDay = slotsForSameDay.some((slot) => !slot.isClosed);
+
+    if (businessHourForm.isClosed && hasOpenSlotsForDay) {
+      nextErrors.weekday = 'Este dia ya tiene franjas abiertas. Eliminalas antes de marcarlo como cerrado.';
+    }
+
+    if (!businessHourForm.isClosed && hasClosedSlotForDay) {
+      nextErrors.weekday = 'Este dia esta marcado como cerrado. Edita o elimina ese registro antes de cargar una franja abierta.';
+    }
+
     const duplicatedSlot = businessHours.some(
       (slot) =>
         slot.id !== selectedBusinessHourId &&
@@ -1219,7 +1238,7 @@ export function SettingsPage() {
   }
 
   async function handleSaveBusinessHour() {
-    if (!isAdmin || isSettingsSaving || !validateBusinessHour()) {
+    if (!canManageRestaurantSettings || isSettingsSaving || !validateBusinessHour()) {
       return;
     }
 
@@ -1254,7 +1273,7 @@ export function SettingsPage() {
   }
 
   async function handleDeleteBusinessHour(slot) {
-    if (!isAdmin || isSettingsSaving) {
+    if (!canManageRestaurantSettings || isSettingsSaving) {
       return;
     }
 
@@ -1343,7 +1362,7 @@ export function SettingsPage() {
           businessHours={businessHours}
           errors={settingsErrors}
           form={settingsForm}
-          isAdmin={isAdmin}
+          canManageRestaurantSettings={canManageRestaurantSettings}
           isBusinessHourEditing={Boolean(selectedBusinessHourId)}
           isLoading={isSettingsLoading}
           isSaving={isSettingsSaving}
