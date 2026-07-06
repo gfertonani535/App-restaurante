@@ -2,16 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { Clock, Globe, Info, Link2, Lock, LogOut, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getPublicRestaurantFooterData } from '@/services/settings.service.js';
-
-const weekdayLabels = {
-  1: 'Lunes',
-  2: 'Martes',
-  3: 'Miércoles',
-  4: 'Jueves',
-  5: 'Viernes',
-  6: 'Sábado',
-  7: 'Domingo',
-};
+import {
+  formatBusinessHourGroup,
+  getBusinessHourGroupDayLabel,
+  groupBusinessHoursBySchedule,
+} from '@/utils/businessHours.js';
 
 function WhatsappIcon(props) {
   return (
@@ -95,53 +90,6 @@ function getSocialIcon(provider) {
   return socialIconsByProvider[normalizeProvider(provider)] ?? Link2;
 }
 
-function formatHour(value) {
-  if (!value) {
-    return '';
-  }
-
-  return String(value).slice(0, 5);
-}
-
-function getBusinessHourRows(hours) {
-  const groupedHours = new Map();
-
-  for (const hour of hours) {
-    const weekday = Number(hour.weekday);
-    const current = groupedHours.get(weekday) ?? {
-      weekday,
-      isClosed: false,
-      slots: [],
-    };
-
-    if (hour.isClosed) {
-      current.isClosed = true;
-    } else if (hour.opensAt && hour.closesAt) {
-      current.slots.push({
-        opensAt: hour.opensAt,
-        closesAt: hour.closesAt,
-        slotNumber: Number(hour.slotNumber) || 1,
-      });
-    }
-
-    groupedHours.set(weekday, current);
-  }
-
-  return Array.from(groupedHours.values())
-    .sort((first, second) => first.weekday - second.weekday)
-    .map((day) => {
-      const slots = day.slots
-        .sort((first, second) => first.slotNumber - second.slotNumber)
-        .map((slot) => `${formatHour(slot.opensAt)} - ${formatHour(slot.closesAt)}`);
-
-      return {
-        weekday: day.weekday,
-        label: weekdayLabels[day.weekday] ?? 'Día',
-        value: slots.length > 0 ? slots.join(' / ') : 'Cerrado',
-      };
-    });
-}
-
 function FooterSection({ title, children }) {
   return (
     <section className="border-b border-white/10 py-6 first:pt-0 md:border-b-0 md:border-r md:py-0 md:pr-8 md:last:border-r-0 md:last:pr-0">
@@ -212,7 +160,7 @@ export function PublicMenuFooter({ isAuthenticated, onToggleSession }) {
     () => footerData.socialLinks.filter((link) => link.isActive).slice(0, 4),
     [footerData.socialLinks],
   );
-  const businessHourRows = useMemo(() => getBusinessHourRows(footerData.businessHours), [footerData.businessHours]);
+  const businessHourGroups = useMemo(() => groupBusinessHoursBySchedule(footerData.businessHours), [footerData.businessHours]);
 
   return (
     <footer className="relative left-1/2 right-1/2 mt-8 w-screen -translate-x-1/2 bg-[#111315] px-5 py-8 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:px-8 md:py-10">
@@ -236,12 +184,12 @@ export function PublicMenuFooter({ isAuthenticated, onToggleSession }) {
           <FooterSection title="Horarios">
             {isLoading ? (
               <IconText icon={Clock}>Cargando horarios...</IconText>
-            ) : businessHourRows.length > 0 ? (
+            ) : businessHourGroups.length > 0 ? (
               <div className="grid gap-2">
-                {businessHourRows.map((row) => (
-                  <div className="grid gap-1 text-sm font-medium text-white" key={row.weekday}>
-                    <span className="text-white/55">{row.label}</span>
-                    <span>{row.value}</span>
+                {businessHourGroups.map((group) => (
+                  <div className="grid gap-1 text-sm font-medium text-white" key={`${group.key}-${group.weekdays.join('-')}`}>
+                    <span className="text-white/55">{getBusinessHourGroupDayLabel(group)}</span>
+                    <span>{formatBusinessHourGroup(group)}</span>
                   </div>
                 ))}
               </div>

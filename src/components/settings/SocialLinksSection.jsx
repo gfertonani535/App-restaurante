@@ -4,9 +4,25 @@ import { StatusBadge } from '@/components/common/StatusBadge.jsx';
 import { SwitchField } from '@/components/common/SwitchField.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select.jsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
 
 const activeLimit = 4;
+const socialNetworkOptions = [
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'facebook', label: 'Facebook' },
+  { value: 'whatsapp', label: 'WhatsApp' },
+  { value: 'tiktok', label: 'TikTok' },
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'web', label: 'Sitio web' },
+  { value: 'other', label: 'Otro' },
+];
+
+const socialNetworkLabels = Object.fromEntries(socialNetworkOptions.map((option) => [option.value, option.label]));
+
+function getSocialNetworkLabel(provider) {
+  return socialNetworkLabels[provider] ?? provider;
+}
 
 export function SocialLinksSection({
   errors,
@@ -44,8 +60,8 @@ export function SocialLinksSection({
         <Table className="min-w-[780px]">
           <TableHeader>
             <TableRow className="bg-neutral-50 hover:bg-neutral-50">
-              <TableHead>Proveedor</TableHead>
-              <TableHead>Etiqueta</TableHead>
+              <TableHead>Red social</TableHead>
+              <TableHead>Nombre visible</TableHead>
               <TableHead>URL</TableHead>
               <TableHead>Orden</TableHead>
               <TableHead>Estado</TableHead>
@@ -56,14 +72,14 @@ export function SocialLinksSection({
             {links.length === 0 ? (
               <TableRow>
                 <TableCell className="py-8 text-center text-neutral-500" colSpan={6}>
-                  Todavia no hay redes sociales cargadas.
+                  Todavía no hay redes sociales cargadas.
                 </TableCell>
               </TableRow>
             ) : null}
 
             {links.map((link) => (
               <TableRow key={link.id}>
-                <TableCell className="font-semibold text-neutral-950">{link.provider}</TableCell>
+                <TableCell className="font-semibold text-neutral-950">{getSocialNetworkLabel(link.provider)}</TableCell>
                 <TableCell>{link.label}</TableCell>
                 <TableCell className="max-w-[260px] truncate text-neutral-500">{link.url}</TableCell>
                 <TableCell>{link.displayOrder}</TableCell>
@@ -94,26 +110,34 @@ export function SocialLinksSection({
           <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-neutral-950">
             {isEditing ? 'Editar red social' : 'Nueva red social'}
           </h3>
-          <p className="mt-1 text-sm text-neutral-500">Usa cualquier proveedor: instagram, facebook, whatsapp, tiktok, web u otro.</p>
+          <p className="mt-1 text-sm text-neutral-500">Elegí la red social y configurá cómo se verá en el footer público.</p>
         </div>
         <div className="grid gap-4 lg:grid-cols-[1fr_1fr_2fr_120px]">
-          <FormField error={errors.provider} htmlFor="social-provider" label="Proveedor">
-            <Input
-              className="rounded-none border-neutral-200 bg-white"
+          <FormField error={errors.provider} label="Red social">
+            <Select
               disabled={isReadOnly || isSaving}
-              id="social-provider"
-              onChange={(event) => onChange('provider', event.target.value)}
-              placeholder="instagram"
+              onValueChange={(value) => onChange('provider', value, socialNetworkLabels[value])}
               value={form.provider}
-            />
+            >
+              <SelectTrigger className="h-11 rounded-none border-neutral-200 bg-white">
+                <SelectValue placeholder="Seleccionar red" />
+              </SelectTrigger>
+              <SelectContent>
+                {socialNetworkOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </FormField>
-          <FormField error={errors.label} htmlFor="social-label" label="Etiqueta">
+          <FormField error={errors.label} htmlFor="social-label" label="Nombre visible">
             <Input
               className="rounded-none border-neutral-200 bg-white"
               disabled={isReadOnly || isSaving}
               id="social-label"
               onChange={(event) => onChange('label', event.target.value)}
-              placeholder="Instagram"
+              placeholder={form.provider === 'other' ? 'Ej: TripAdvisor' : 'Instagram'}
               value={form.label}
             />
           </FormField>
