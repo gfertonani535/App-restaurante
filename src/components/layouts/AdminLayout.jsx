@@ -96,10 +96,10 @@ export function AdminLayout() {
               <ShoppingBasket className="size-4" aria-hidden="true" />
               <span className="hidden sm:inline">Ver menú</span>
             </NavLink>
-            <button className="hidden size-10 place-items-center text-neutral-500 transition-colors hover:bg-neutral-50 sm:grid" type="button">
+            {/* <button className="hidden size-10 place-items-center text-neutral-500 transition-colors hover:bg-neutral-50 sm:grid" type="button">
               <Bell className="size-5" aria-hidden="true" />
-            </button>
-            <UserRound className="hidden size-5 text-neutral-400 sm:block" aria-hidden="true" />
+            </button> */}
+            {/* <UserRound className="hidden size-5 text-neutral-400 sm:block" aria-hidden="true" /> */}
             <button
               onClick={handleLogout}
               className="hidden size-10 place-items-center text-neutral-500 transition-colors hover:bg-neutral-50 sm:grid"

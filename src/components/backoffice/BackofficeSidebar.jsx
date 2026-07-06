@@ -37,7 +37,7 @@ export function BackofficeSidebar({ isOpen = true, onClose, onNavigate, variant 
       <div className="mb-8 flex items-start justify-between gap-4 px-4">
         <div>
           <h1 className="text-xl font-black uppercase leading-none tracking-tight text-neutral-950">POS Backoffice</h1>
-          <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.18em] text-neutral-400">Terminal v1.0.4</p>
+          <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.18em] text-neutral-400">Terminal v1.0.25</p>
         </div>
         {isMobile ? (
           <button
