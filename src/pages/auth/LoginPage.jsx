@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FormField } from '@/components/common/FormField.jsx';
+import { Alert } from '@/components/ui/alert.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
 import { supabase } from '@/lib/supabase.js';
@@ -69,7 +70,7 @@ export function LoginPage() {
             />
           </FormField>
 
-          {error ? <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p> : null}
+          {error ? <Alert variant="destructive">{error}</Alert> : null}
 
           <Button className="mt-2 rounded-lg px-4 py-2.5 text-sm font-semibold" disabled={loading} type="submit">
             {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
