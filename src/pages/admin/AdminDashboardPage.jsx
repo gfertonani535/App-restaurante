@@ -21,17 +21,18 @@ import { Alert } from '@/components/ui/alert.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.jsx';
+import { ORDER_STATUS } from '@/constants/orderStatuses.js';
 import { getDashboardSummary } from '@/services/dashboard.service.js';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatDateTime, formatTime } from '@/utils/formatters.js';
 
 const orderStatusMeta = {
-  open: { label: 'Pendiente', variant: 'warning' },
-  preparing: { label: 'En preparación', variant: 'warning' },
-  ready: { label: 'Lista', variant: 'success' },
-  served: { label: 'Servida', variant: 'muted' },
-  closed: { label: 'Cerrada', variant: 'muted' },
-  cancelled: { label: 'Cancelada', variant: 'destructive' },
+  [ORDER_STATUS.OPEN]: { label: 'Pendiente', variant: 'warning' },
+  [ORDER_STATUS.PREPARING]: { label: 'En preparación', variant: 'warning' },
+  [ORDER_STATUS.READY]: { label: 'Lista', variant: 'success' },
+  [ORDER_STATUS.SERVED]: { label: 'Servida', variant: 'muted' },
+  [ORDER_STATUS.CLOSED]: { label: 'Cerrada', variant: 'muted' },
+  [ORDER_STATUS.CANCELLED]: { label: 'Cancelada', variant: 'destructive' },
 };
 
 const paymentStatusMeta = {
@@ -49,10 +50,10 @@ const paymentMethodLabels = {
 
 function OperatingStatusCard({ activeOrdersSummary }) {
   const items = [
-    { label: 'Pendientes', value: activeOrdersSummary.byStatus.open, className: 'border-amber-200 bg-amber-50' },
-    { label: 'En preparación', value: activeOrdersSummary.byStatus.preparing, className: 'border-amber-200 bg-amber-50' },
-    { label: 'Listas', value: activeOrdersSummary.byStatus.ready, className: 'border-emerald-200 bg-emerald-50' },
-    { label: 'Servidas', value: activeOrdersSummary.byStatus.served, className: 'border-neutral-200 bg-neutral-50' },
+    { label: 'Pendientes', value: activeOrdersSummary.byStatus[ORDER_STATUS.OPEN], className: 'border-amber-200 bg-amber-50' },
+    { label: 'En preparación', value: activeOrdersSummary.byStatus[ORDER_STATUS.PREPARING], className: 'border-amber-200 bg-amber-50' },
+    { label: 'Listas', value: activeOrdersSummary.byStatus[ORDER_STATUS.READY], className: 'border-emerald-200 bg-emerald-50' },
+    { label: 'Servidas', value: activeOrdersSummary.byStatus[ORDER_STATUS.SERVED], className: 'border-neutral-200 bg-neutral-50' },
     { label: 'Pagadas sin cerrar', value: activeOrdersSummary.paidPendingClosure, className: 'border-neutral-950 bg-neutral-950 text-white' },
   ];
 
@@ -321,7 +322,7 @@ export function AdminDashboardPage() {
       {
         title: 'Órdenes activas',
         value: String(dashboard.activeOrdersSummary.total),
-        helper: `${dashboard.activeOrdersSummary.byStatus.preparing} en preparación`,
+        helper: `${dashboard.activeOrdersSummary.byStatus[ORDER_STATUS.PREPARING]} en preparación`,
         icon: ClipboardList,
       },
       {

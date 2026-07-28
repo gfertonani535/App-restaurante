@@ -1,8 +1,7 @@
 import { supabase } from '@/lib/supabase.js';
+import { OPERATIVE_ORDER_STATUSES, ORDER_STATUS } from '@/constants/orderStatuses.js';
 
 // Servicio centralizado: el dashboard solo consume lecturas reales agregadas desde Supabase.
-
-const ACTIVE_ORDER_STATUSES = ['open', 'preparing', 'ready', 'served'];
 
 function ensureSupabaseClient() {
   if (!supabase) {
@@ -125,10 +124,10 @@ function buildPaymentSummary(payments) {
 
 function buildActiveOrdersSummary(orders) {
   const byStatus = {
-    open: 0,
-    preparing: 0,
-    ready: 0,
-    served: 0,
+    [ORDER_STATUS.OPEN]: 0,
+    [ORDER_STATUS.PREPARING]: 0,
+    [ORDER_STATUS.READY]: 0,
+    [ORDER_STATUS.SERVED]: 0,
   };
   let paidPendingClosure = 0;
 
@@ -171,7 +170,7 @@ export async function getActiveOrdersSummary() {
   const { data, error } = await client
     .from('orders')
     .select('id, status, payment_status, total')
-    .in('status', ACTIVE_ORDER_STATUSES);
+    .in('status', OPERATIVE_ORDER_STATUSES);
 
   if (error) {
     throw new Error(translateSupabaseError(error, 'No se pudieron cargar las órdenes activas.'));

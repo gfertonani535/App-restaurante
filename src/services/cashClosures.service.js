@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase.js';
+import { ORDER_STATUS } from '@/constants/orderStatuses.js';
 
 // Servicio centralizado: resume, cierra e historiza caja usando datos reales de Supabase.
 
@@ -212,7 +213,7 @@ export async function getPendingClosurePayments() {
 
   return (data ?? [])
     .map(normalizePayment)
-    .filter((payment) => payment.order && !payment.order.cashClosureId && payment.order.status !== 'cancelled');
+    .filter((payment) => payment.order && !payment.order.cashClosureId && payment.order.status !== ORDER_STATUS.CANCELLED);
 }
 
 export async function closeCashRegister(notes = '') {

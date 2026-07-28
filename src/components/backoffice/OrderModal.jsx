@@ -4,6 +4,7 @@ import { IconButton } from '@/components/common/IconButton.jsx';
 import { SearchField } from '@/components/common/SearchField.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Input } from '@/components/ui/input.jsx';
+import { ORDER_STATUS } from '@/constants/orderStatuses.js';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/utils/formatters.js';
 
@@ -31,7 +32,7 @@ export function OrderModal({ mode, order, products, categories, isSaving = false
   const [tableOrLocation, setTableOrLocation] = useState(() => (mode === 'edit' ? order?.tableOrLocation ?? '' : ''));
   const [customerOrWaiter, setCustomerOrWaiter] = useState(() => (mode === 'edit' ? order?.customerOrWaiter ?? '' : ''));
   const [notes, setNotes] = useState(() => (mode === 'edit' ? order?.notes ?? '' : ''));
-  const orderStatus = mode === 'edit' ? order?.status ?? 'open' : 'open';
+  const orderStatus = mode === 'edit' ? order?.status ?? ORDER_STATUS.OPEN : ORDER_STATUS.OPEN;
   const [items, setItems] = useState(() => (mode === 'edit' ? order?.items ?? [] : []));
   const [isPaymentMenuOpen, setIsPaymentMenuOpen] = useState(false);
 

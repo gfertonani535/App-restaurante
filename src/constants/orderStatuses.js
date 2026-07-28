@@ -1,0 +1,20 @@
+export const ORDER_STATUS = {
+  OPEN: 'open',
+  PREPARING: 'preparing',
+  READY: 'ready',
+  SERVED: 'served',
+  CLOSED: 'closed',
+  CANCELLED: 'cancelled',
+};
+
+export const OPERATIVE_ORDER_STATUSES = [
+  ORDER_STATUS.OPEN,
+  ORDER_STATUS.PREPARING,
+  ORDER_STATUS.READY,
+  ORDER_STATUS.SERVED,
+];
+
+export const TERMINAL_ORDER_STATUSES = [
+  ORDER_STATUS.CLOSED,
+  ORDER_STATUS.CANCELLED,
+];

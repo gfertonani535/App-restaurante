@@ -3,6 +3,7 @@ import { IconButton } from '@/components/common/IconButton.jsx';
 import { StatusBadge } from '@/components/common/StatusBadge.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { getAdjacentStatus, orderStatusMeta, paymentMeta } from '@/components/orders/orderHelpers.js';
+import { TERMINAL_ORDER_STATUSES } from '@/constants/orderStatuses.js';
 import { cn } from '@/lib/utils';
 
 const paymentToneVariants = {
@@ -27,7 +28,7 @@ export function PaymentBadge({ className, paymentStatus }) {
 }
 
 export function PaymentAction({ onCharge, order }) {
-  const canCharge = order.paymentStatus !== 'paid' && !['closed', 'cancelled'].includes(order.status);
+  const canCharge = order.paymentStatus !== 'paid' && !TERMINAL_ORDER_STATUSES.includes(order.status);
 
   if (!canCharge) {
     return <PaymentBadge paymentStatus={order.paymentStatus} />;
@@ -83,9 +84,9 @@ export function OrderStatusControl({ isDisabled = false, isUpdating = false, onC
 }
 
 export function OrderActions({ order, onDelete, onEdit, onPrint, onView }) {
-  const canEdit = order.paymentStatus !== 'paid' && !['closed', 'cancelled'].includes(order.status);
+  const canEdit = order.paymentStatus !== 'paid' && !TERMINAL_ORDER_STATUSES.includes(order.status);
   const canDelete =
-    order.paymentStatus === 'unpaid' && !order.cashClosureId && !['closed', 'cancelled'].includes(order.status);
+    order.paymentStatus === 'unpaid' && !order.cashClosureId && !TERMINAL_ORDER_STATUSES.includes(order.status);
 
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2">

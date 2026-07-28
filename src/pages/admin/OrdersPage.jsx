@@ -15,6 +15,7 @@ import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { SearchField } from '@/components/common/SearchField.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select.jsx';
+import { ORDER_STATUS, TERMINAL_ORDER_STATUSES } from '@/constants/orderStatuses.js';
 import { getCategories } from '@/services/categories.service.js';
 import { getProducts } from '@/services/products.service.js';
 import {
@@ -31,9 +32,9 @@ import { formatCurrency } from '@/utils/formatters.js';
 
 const filterDefinitions = [
   { id: 'all', label: 'Todas' },
-  { id: 'open', label: 'Pendientes' },
-  { id: 'preparing', label: 'Preparando' },
-  { id: 'ready', label: 'Listas' },
+  { id: ORDER_STATUS.OPEN, label: 'Pendientes' },
+  { id: ORDER_STATUS.PREPARING, label: 'Preparando' },
+  { id: ORDER_STATUS.READY, label: 'Listas' },
   { id: 'paid', label: 'Pagadas' },
 ];
 
@@ -117,16 +118,16 @@ function sortOrders(orders, sortKey, sortDirection) {
 }
 
 function applyFilter(orders, filterId) {
-  if (filterId === 'open') {
-    return orders.filter((order) => order.status === 'open');
+  if (filterId === ORDER_STATUS.OPEN) {
+    return orders.filter((order) => order.status === ORDER_STATUS.OPEN);
   }
 
-  if (filterId === 'preparing') {
-    return orders.filter((order) => order.status === 'preparing');
+  if (filterId === ORDER_STATUS.PREPARING) {
+    return orders.filter((order) => order.status === ORDER_STATUS.PREPARING);
   }
 
-  if (filterId === 'ready') {
-    return orders.filter((order) => order.status === 'ready');
+  if (filterId === ORDER_STATUS.READY) {
+    return orders.filter((order) => order.status === ORDER_STATUS.READY);
   }
 
   if (filterId === 'paid') {
@@ -190,14 +191,14 @@ export function OrdersPage() {
     return () => window.clearTimeout(timeoutId);
   }, [loadData]);
 
-  const activeOrders = useMemo(() => orders.filter((order) => order.status !== 'cancelled'), [orders]);
+  const activeOrders = useMemo(() => orders.filter((order) => order.status !== ORDER_STATUS.CANCELLED), [orders]);
 
   const filterCounts = useMemo(
     () => ({
       all: activeOrders.length,
-      open: activeOrders.filter((order) => order.status === 'open').length,
-      preparing: activeOrders.filter((order) => order.status === 'preparing').length,
-      ready: activeOrders.filter((order) => order.status === 'ready').length,
+      [ORDER_STATUS.OPEN]: activeOrders.filter((order) => order.status === ORDER_STATUS.OPEN).length,
+      [ORDER_STATUS.PREPARING]: activeOrders.filter((order) => order.status === ORDER_STATUS.PREPARING).length,
+      [ORDER_STATUS.READY]: activeOrders.filter((order) => order.status === ORDER_STATUS.READY).length,
       paid: activeOrders.filter((order) => order.paymentStatus === 'paid').length,
     }),
     [activeOrders],
@@ -240,8 +241,8 @@ export function OrdersPage() {
     setPage(1);
   }
 
-  function handlePageSizeChange(event) {
-    setPageSize(Number(event.target.value));
+  function handlePageSizeChange(value) {
+    setPageSize(Number(value));
     setPage(1);
   }
 
@@ -361,7 +362,7 @@ export function OrdersPage() {
       return;
     }
 
-    if (order.paymentStatus !== 'unpaid' || order.cashClosureId || ['closed', 'cancelled'].includes(order.status)) {
+    if (order.paymentStatus !== 'unpaid' || order.cashClosureId || TERMINAL_ORDER_STATUSES.includes(order.status)) {
       setError('Solo se pueden eliminar pedidos activos sin pagos registrados.');
       return;
     }
@@ -520,15 +521,16 @@ export function OrdersPage() {
 
       <footer className="flex flex-col gap-4 border-t border-neutral-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
         <Pagination currentPage={currentPage} onPageChange={setPage} totalPages={totalPages} />
-        <select
-          className="h-10 border border-neutral-200 bg-white px-3 text-base outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950"
-          onChange={handlePageSizeChange}
-          value={pageSize}
-        >
-          <option value={10}>10 por página</option>
-          <option value={25}>25 por página</option>
-          <option value={50}>50 por página</option>
-        </select>
+        <Select onValueChange={handlePageSizeChange} value={String(pageSize)}>
+          <SelectTrigger className="h-10 w-full rounded-none border-neutral-200 bg-white text-base sm:w-[170px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="10">10 por página</SelectItem>
+            <SelectItem value="25">25 por página</SelectItem>
+            <SelectItem value="50">50 por página</SelectItem>
+          </SelectContent>
+        </Select>
       </footer>
 
       {isOrderModalOpen ? (

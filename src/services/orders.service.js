@@ -1,8 +1,7 @@
+import { ORDER_STATUS, OPERATIVE_ORDER_STATUSES } from '@/constants/orderStatuses.js';
 import { supabase } from '@/lib/supabase.js';
 
 // Servicio centralizado: mantiene las consultas de órdenes a Supabase fuera de los componentes.
-
-const OPERATIVE_ORDER_STATUSES = ['open', 'preparing', 'ready', 'served'];
 
 const ORDER_SELECT = `
   id,
@@ -209,7 +208,7 @@ export async function getOrders() {
   const { data, error } = await client
     .from('orders')
     .select(ORDER_SELECT)
-    .in('status', ['open', 'preparing', 'ready', 'served'])
+    .in('status', OPERATIVE_ORDER_STATUSES)
     .order('created_at', { ascending: false })
     .limit(250);
 
@@ -306,7 +305,7 @@ export async function cancelOrder(orderId) {
   const client = ensureSupabaseClient();
   const { data, error } = await client
     .from('orders')
-    .update({ status: 'cancelled' })
+    .update({ status: ORDER_STATUS.CANCELLED })
     .eq('id', orderId)
     .in('status', OPERATIVE_ORDER_STATUSES)
     .select(ORDER_SELECT)

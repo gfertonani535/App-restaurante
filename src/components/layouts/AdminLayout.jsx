@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Bell, LogOut, Menu, ShoppingBasket, UserRound } from 'lucide-react';
+import { LogOut, Menu, ShoppingBasket } from 'lucide-react';
 import { BackofficeSidebar } from '@/components/backoffice/BackofficeSidebar.jsx';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { cn } from '@/lib/utils';

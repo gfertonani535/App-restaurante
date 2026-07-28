@@ -1,3 +1,5 @@
+import { OPERATIVE_ORDER_STATUSES, ORDER_STATUS } from '@/constants/orderStatuses.js';
+
 export const paymentMeta = {
   unpaid: {
     label: 'No pagado',
@@ -14,12 +16,12 @@ export const paymentMeta = {
 };
 
 export const orderStatusMeta = {
-  open: 'Pendiente',
-  preparing: 'Preparando',
-  ready: 'Lista',
-  served: 'Servida',
-  closed: 'Cerrada',
-  cancelled: 'Cancelada',
+  [ORDER_STATUS.OPEN]: 'Pendiente',
+  [ORDER_STATUS.PREPARING]: 'Preparando',
+  [ORDER_STATUS.READY]: 'Lista',
+  [ORDER_STATUS.SERVED]: 'Servida',
+  [ORDER_STATUS.CLOSED]: 'Cerrada',
+  [ORDER_STATUS.CANCELLED]: 'Cancelada',
 };
 
 export const paymentMethodLabels = {
@@ -29,18 +31,16 @@ export const paymentMethodLabels = {
   other: 'Otro',
 };
 
-const editableStatusOrder = ['open', 'preparing', 'ready', 'served'];
-
 export function getProductsSummary(order) {
   return order.items.map((item) => `${item.quantity}x ${item.name}`).join(', ');
 }
 
 export function getAdjacentStatus(currentStatus, direction) {
-  const currentIndex = editableStatusOrder.indexOf(currentStatus);
+  const currentIndex = OPERATIVE_ORDER_STATUSES.indexOf(currentStatus);
 
   if (currentIndex === -1) {
     return null;
   }
 
-  return editableStatusOrder[currentIndex + direction] ?? null;
+  return OPERATIVE_ORDER_STATUSES[currentIndex + direction] ?? null;
 }
