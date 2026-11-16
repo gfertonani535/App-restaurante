@@ -25,11 +25,11 @@ export function AppRoutes() {
 
         <Route
           path="/admin"
-          // element={
-          //   <ProtectedRoute>
-          //     <AdminLayout />
-          //   </ProtectedRoute>
-          // }
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
         >
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboardPage />} />
